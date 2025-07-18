@@ -1,0 +1,8 @@
+<span class="w3-hide"><!--
+ @version         $Id: infobox.htt 76 2017-03-10 14:44:36Z Luisehahne $
+--></span>
+<!-- BEGIN main_block -->
+    <div id="message-box" class="msg-box rounded {BOX_STATUS}-box w3-mobile w3-rest" style="margin: 1.225em auto;">
+        <p class="w3-text-grey">{MESSAGE}</p>
+    </div>
+<!-- END main_block -->

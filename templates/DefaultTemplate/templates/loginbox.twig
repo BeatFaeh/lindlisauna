@@ -1,0 +1,164 @@
+{#
+
+#}
+
+  <div class="login-box container-fluid alert alert-success">
+      <h5  class="text-center alert-info" style="font-size: 100%;">{{ lang.TEXT_CLASS_INFO|raw }}</h5>
+{% if oApp.FrontendLogin  %}
+        <div class="login-container panel panel-default rounded">
+
+      {% if form.LoggedIn  %}
+          <div class="panel-heading"><h3 class="panel-title">{{ lang.TEXT_LOGGED_IN }}<span> {{ form.AppUrl }}</span></h3></div>
+      {% else %}
+          <div class="panel-heading"><h3 class="panel-title">{{ lang.MENU_LOGIN }}<span> {{ form.AppUrl }}</span></h3></div>
+      {% endif %}
+            <div class="avatar text-center col-xs-12 col-sm-6 col-md-12">
+             <div class="col-xs-1 col-sm-1"> </div>
+             <div class="col-xs-9 col-sm-9"> 
+                <img src="{{ TemplateUrl }}images/WB-Logo-RGB.png" class="img-responsive img-center" alt="" />
+            </div>
+            <div class="clearfix visible-xs-block"></div>
+            <div class="col-xs-1 col-sm-1"> </div>
+            </div>
+      {% if form.LoggedIn  %}
+            <div id="output">{{ lang.TEXT_WELCOME_BACK|raw }}<br />{{ form.DisplayName|raw }}</div>
+      {% if form.LoggedIn  %}
+            <div class="form-box">
+                <form action="{{ oApp.LogoutUrl }}" method="post">
+                    <button class="btn btn-info btn-block login" type="submit">{{ lang.MENU_LOGOUT|raw  }}</button>
+                </form>
+            </div>
+      {% endif %}
+
+      {% if form.SetPreferences  %}
+            <div class="form-box">
+                <form action="{{ form.PreferencesUrl }}" method="post">
+                    <button class="btn btn-info btn-block login" type="submit">{{ lang.MENU_PREFERENCES|raw }}</button>
+                </form>
+            </div>
+      {% endif %}
+
+      {% if form.SetAdminTools  %}   
+            <div class="form-box">
+                <form action="{{ oApp.AcpUrl }}index.php" method="post" target="_blank">
+                    <button class="btn btn-info btn-block login" type="submit">{{ lang.TEXT_ADMINISTRATION|raw  }}</button>
+                </form>
+            </div>
+      {% endif %}
+
+      {% if form.SetPagesModify  %}
+            <div class="form-box">
+                <form action="{{ form.ModifyPageUrl }}" method="post" target="_blank">
+                    <input type="hidden" name="page_id" value="{{ oApp.PageId }}" />
+                    <button class="btn btn-info btn-block login" type="submit">{{ lang.HEADING_MODIFY_PAGE|raw  }}</button>
+                </form>
+            </div>
+      {% endif %}
+
+      {% else %}
+            <div id="output">{{ lang.MESSAGE_LOGIN_PASSWORD|raw }}</div>
+            <div class="form-box">
+                <form action="{{ form.LoginUrl }}" method="post">
+                    <input type="hidden" value="login" name="action" />
+                    <input type="hidden" value="{{ form.UserFieldname }}" name="username_fieldname" />
+                    <input type="hidden" value="{{ form.PasswordFieldname }}" name="password_fieldname" />
+                    <input type="hidden" name="redirect" value="{{ form.RedirectUrl }}" />
+                    <input type="text" name="{{ form.UserFieldname }}" placeholder="Login-Name" />
+                    <div class="password">
+                        <input type="password" name="{{ form.PasswordFieldname }}" id="passwordfield" placeholder="Passwort" />
+                        <span class="glyphicon glyphicon-eye-open"></span>
+                    </div>
+                    <button class="btn btn-info btn-block login" type="submit">{{ lang.MESSAGE_LOGIN|raw }}</button>
+                </form>   
+              {% if oApp.FrontendSignup  %}
+                <form action="{{ form.SignupUrl }}" method="post">
+                    <button class="btn btn-info btn-block login" type="submit">{{ lang.TEXT_SIGNUP|raw }}</button>
+                </form>
+              {% endif %}
+                <form action="{{ form.ForgotUrl }}" method="post">
+                    <button class="btn btn-info btn-block login" type="submit">{{ lang.TEXT_FORGOT_DETAILS|raw }}</button>
+                </form>
+            </div>
+      {% endif %}
+        <p><sub>Login-Form made by <a href="http://bootsnipp.com/">Bootsnipp</a></sub></p>
+        </div>       
+      {% endif %}
+  {#
+      <div class="col-md12">
+          <div class="panel panel-default">
+        <div class="panel-heading"><h3 class="panel-title"><strong>Anmeldung</strong></h3></div>
+        <div class="panel-body">
+         <form role="form">
+        <div class="form-group">
+          <label for="exampleInputEmail1">Bitte Loginname und Passwort eingeben</label>
+          <input type="text" class="form-control" id="exampleInputEmail1" placeholder="Loginname" />
+        </div>
+        <div class="form-group">
+          <label for="exampleInputPassword1">Password <a href="/sessions/forgot_password">(Persönliche Daten vergessen?)</a></label>
+          <input type="password" class="form-control" id="exampleInputPassword1" placeholder="Password" />
+        </div>
+        <button type="submit" class="btn btn-sm btn-default">Anmelden</button>
+      </form>
+        </div>
+      </div>
+      </div>
+  #}
+  
+  {# 
+    <form autocomplete="off" method="post" style="background-color:#FFFFFF;font-size:14px;font-family:'Open Sans','Helvetica Neue','Helvetica',Arial,Verdana,sans-serif;color:#666666;max-width:480px;min-width:150px"
+    class="formoid-metro-cyan" novalidate="novalidate">
+            <div class="title">
+                    <h2>Registration form</h2>
+            </div>
+            <div class="element-input">
+                    <label class="title">Username:<span class="required" aria-required="true">*</span></label>
+                    <input type="text" required="required" name="input" class="large" aria-required="true">
+            </div>
+            <div class="element-email">
+                <label class="title">Email:<span class="required" aria-required="true">*</span></label>
+                <input type="email" required="required" value="" name="email" class="large" aria-required="true"/>
+            </div>
+            <div class="element-password">
+                <label class="title">Password:<span class="required" aria-required="true">*</span></label>
+                <input type="password" required="required" value="" name="password" class="large" aria-required="true"/>
+            </div>
+            <div class="element-password">
+                <label class="title">Confirm password:<span class="required" aria-required="true">*</span></label>
+                <input type="password" required="required" value="" name="password1" class="large" aria-required="true"/>
+            </div>
+            <div class="element-name">
+                    <label class="title">Name:</label>
+                    <span class="nameFirst">
+                        <input type="text" name="name[first]" size="8"/>
+                        <label class="subtitle">First</label>
+                    </span>
+                    <span class="nameLast">
+                        <input type="text" name="name[last]" size="14"/>
+                        <label class="subtitle">Last</label>
+                    </span>
+            </div>
+            <div class="element-radio">
+                    <label class="title">Gender:</label>
+                    <div class="column column2">
+                        <input type="radio" value="Male" name="radio"/><span>Male</span><br>
+                    </div>
+                    <span class="clearfix"></span>
+                    <div class="column column2">
+                        <input type="radio" value="Female" name="radio"/><span>Female</span><br>
+                    </div>
+                    <span class="clearfix"></span>
+            </div>
+            <div class="element-date">
+                    <label class="title">Birthday:</label>
+                    <input type="text" class="large" name="date" placeholder="yyyy-mm-dd"/>
+            </div>
+            <div class="submit">
+                <input type="submit" value="Submit"/>
+            </div>
+            
+    </form>
+  #}
+  
+  
+  </div>
+

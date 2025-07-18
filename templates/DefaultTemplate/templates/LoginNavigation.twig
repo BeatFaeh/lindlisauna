@@ -1,0 +1,33 @@
+{#
+#}
+
+      {% if form.LoggedIn  %}
+              <form action="{{ form.LogoutUrl }}" method="post" autocomplete="off" class="navbar-form">
+                <div class="form-box">
+                  <button type="submit" class="logout btn btn-default">{{ lang.MENU_LOGOUT }}</button>
+                </div>
+              </form>
+              <form action="{{ form.PreferencesUrl }}" method="post" class="navbar-form" autocomplete="off">
+                <div class="form-box">
+                  <button type="submit" class="logout btn btn-default">{{ lang.MENU_PREFERENCES }}</button>
+                </div>
+              </form>
+      {% else %}
+        <form  action="{{ form.LoginUrl }}" method="post" class="navbar-form" role="login" autocomplete="off" >
+            <input type="hidden" value="login" name="action" />
+            <input type="hidden" value="{{ form.UserFieldname }}" name="username_fieldname" />
+            <input type="hidden" value="{{ form.PasswordFieldname }}" name="password_fieldname" />
+            <input type="hidden" name="url" value="{{ form.RedirectUrl }}" />
+            <input type="hidden" name="redirect" value="{{ form.RedirectUrl }}" />
+            <div class="form-group input-small">
+                <input type="text" class="form-control" name="{{ form.UserFieldname }}" placeholder="Login-Name" />
+            </div>
+            <div class="form-group input-small">
+                <input type="password" id="passwordfield" class="form-control" name="{{ form.PasswordFieldname }}" placeholder="Password" />
+            </div>
+            <div class="form-group">
+            <button type="submit" class="login btn btn-default">{{ lang.MENU_LOGIN }}</button>
+            </div>
+        </form>
+      {% endif %}
+

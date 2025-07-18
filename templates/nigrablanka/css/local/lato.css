@@ -1,0 +1,21 @@
+@font-face {
+  font-family: 'Lato';
+  font-style: normal;
+  font-weight: 300;
+  font-display: swap;
+  src: url(https://wbpur.umojasingers.de/templates/nigrablanka/fonts/local/S6u9w4BMUTPHh7USSwiPHw.woff) format('woff');
+}
+@font-face {
+  font-family: 'Lato';
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url(https://wbpur.umojasingers.de/templates/nigrablanka/fonts/local/S6uyw4BMUTPHjx4wWA.woff) format('woff');
+}
+@font-face {
+  font-family: 'Lato';
+  font-style: normal;
+  font-weight: 900;
+  font-display: swap;
+  src: url(https://wbpur.umojasingers.de/templates/nigrablanka/fonts/local/S6u9w4BMUTPHh50XSwiPHw.woff) format('woff');
+}
