@@ -329,8 +329,8 @@ if($error === false)
 		<br>
 		<table>
 		<tr>
-            <td".$table_td_1.">Mitteilung</td>
-            <td".$table_td.">".nl2br($kontakt_mitteilung)."</td>
+            <td ".$table_td_1.">Mitteilung</td>
+            <td ".$table_td.">".nl2br($kontakt_mitteilung)."</td>
         </tr>
 		</table>
 
