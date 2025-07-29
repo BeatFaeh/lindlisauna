@@ -74,6 +74,9 @@ ob_start(); page_content(5); $fullbottom=ob_get_contents(); ob_end_clean(); // F
 	register_frontend_modfiles('jquery');
 	register_frontend_modfiles('js');
 	?>
+
+    <?php echo "<script src='".WB_URL."/include/tablesort/tablesort.js' type='text/javascript'></script>"; ?>
+
 </head>
 <body>
 		<div id="wrapper">
