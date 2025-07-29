@@ -17,7 +17,7 @@ $mussfeld = "<font color='#FF0000'>(&#8727;)</font>";
 
 $table = " style='border-collapse: collapse;border: 1px solid #999;border-spacing:0;border-width:0;padding:5px;'";
 $table_td = " style='font-family:Verdana;font-size: 16px;vertical-align: top;border: 1px solid #999;padding: 5px;background-color: #FFFFFF;'";	
-$table_td_1 = " style='font-family:Verdana;font-size: 16px;vertical-align: top;border: 1px solid #999;padding: 5px;background-color: #F5F5F5;'";	
+$table_td_1 = " style='font-family:Verdana;font-size: 16px;vertical-align: top;border: 1px solid #999;padding: 5px;background-color: #003d99;color:#ffffff;'";
 
 $max_laenge = 30;
 $zeichen_suchen   = "[at]";
@@ -256,34 +256,32 @@ if($error === false)
 		"
 	<div style=\"width:600px;float:left;\">
 
-	<div style=\"padding-top:10px;padding-bottom:10px;width:700px;text-align:center;background-color:#F2F2F2;font-family:Verdana;font-size:16px;\"> 
+	<div style=\"padding-top:10px;padding-bottom:10px;width:700px;text-align:center;background-color:#003d99;font-family:Verdana;font-size:16px;color:#ffffff;\"> 
 		<br>
-		Kontaktformular | www.buche-deine-ruhe.ch | info@buche-deine-ruhe.ch
-		<br><br><br>
+		<img src='".WB_URL."/pages/lindlisauna_logo.png' width='15%'>
+		<br>
+		<br>
+		Kontaktformular
+		<br><br>
 	</div>
 
 	<div style=\"width:600px;float:left;background-color:#FFFFFF;padding:10px;font-family:Verdana;font-size:16px;\">
 
+		<br><b>Kontaktbestätigung ".$kontakt_vname." ".$kontakt_nname." ".$tagesdatum."</b>
 		<br>
-		<b>Kontaktbestätigung ".$kontakt_vname." ".$kontakt_nname." ".$tagesdatum."</b>
+		<br>Grüezi ".$kontakt_vname." ".$kontakt_nname."<br>
+		<br>Vielen Dank für Ihr E-Mail!
+		<br>Wir melden uns in Kürze wieder bei Ihnen.
 		<br>
-		<br>			
-		Grüezi ".$kontakt_vname." ".$kontakt_nname."<br>
+		<br>Freundliche Grüsse
+		<br>Team Lindlisauna
 		<br>
-		Vielen Dank für Ihr E-Mail!\n
+		<br>info@lindlisauna.ch
+		<br>www.lindlisauna.ch
+		 
 		<br>
-		Ich melde mich in Kürze wieder bei Ihnen.
 		<br>
-		<br>
-		Freundliche Grüsse
-		<br>
-		Ruggero Zehnder<br>
 
-		<br><br>
-
-		<hr style='border: 0;border-top: 1px solid #8c8c8c;border-bottom: 1px solid #fff;'>
-
-		<br><br>
 
 			<table ".$table.">
 
@@ -327,7 +325,15 @@ if($error === false)
 			
 		</table>
 
-		<br><br>Mitteilung:<br><br>".nl2br($kontakt_mitteilung)."
+		<br>
+		<br>
+		<table>
+		<tr>
+            <td".$table_td_1.">Mitteilung</td>
+            <td".$table_td.">".nl2br($kontakt_mitteilung)."</td>
+        </tr>
+		</table>
+
 	</div>
 	</div>";	
 
@@ -340,7 +346,7 @@ if($error === false)
 	$empfaenger = str_replace($zeichen_suchen,$zeichen_ersetzen,$kontakt_email);
 
 	# Betreff
-	$betreff       = "Kontaktformular www.buche-deine-ruhe.ch";;
+	$betreff       = "Kontaktformular www.lindlisauna.ch";;
 
 	# Absender-E-Mail (Kunde)
 	$absenderEmail = $empfaenger;
@@ -348,8 +354,8 @@ if($error === false)
 	$absenderName  = $kontakt_vname." ".$kontakt_nname;
 
 	# Empfaenger
-	$empfaengerEmail = 'info@buche-deine-ruhe.ch';	
-	$empfaengerNamen = 'Kontaktformular www.buche-deine-ruhe.ch';
+	$empfaengerEmail = 'info@lindlisauna.ch';
+	$empfaengerNamen = 'Kontaktformular www.lindlisauna.ch';
 
 	$bcc_empfang   = "beat@faeh.sh";
 
@@ -384,9 +390,9 @@ if($error === false)
 
 	$mail->Send();
 
-	echo "<table>";
-	echo "<tr><td >".$body."</td><tr/>";
-	echo "</table>";
+	echo "<div align='center'><table>
+	<tr><td >".$body."</td><tr/>
+	</table></div>";
 
 }
 else
@@ -651,11 +657,11 @@ else
 	$selectedValue = htmlentities($_POST['kontakt_grund']);
 	$myArray = array(
 		"allgemeine Frage",
-		"Terminverschiebung / -absage",
-		"Beschwerde / Kritik",
-		"Beratung zur Behandlung",
-		"Rückmeldung zur Behandlung",
-		"Anfrage für Hausbesuch",
+		"Kritik",
+		"Mitarbeit",
+		"Reservation Sauna",
+		"Reservation Massageraum",
+        "Reservation Seminarraum",
 		"Nachfrage zu Preisen / Angeboten",
 		"Sonstiges"
 	);
@@ -711,7 +717,7 @@ else
 			<td style='text-align: center;'>
 					".$mussfeld." Bitte Ergebnis eintragen
 					<div style='text-align: center;'>
-		<input type='text' name='captcha_code' id='captcha_code' style='width: 100px;'";
+		<input type='text' name='captcha_code' id='captcha_code' style='text-align: center;width: 100px;'";
 	if(isset($errorFelder['captcha_code']))					
 	{
 		echo "class='bg_error'>\n";

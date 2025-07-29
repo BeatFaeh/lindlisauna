@@ -91,7 +91,7 @@ ob_start(); page_content(5); $fullbottom=ob_get_contents(); ob_end_clean(); // F
 							<a href="index.html" id="main-logo">Lindli Sauna</a>
 							<div class="animate-box">
 							<!-- SEE manual index.html for details -->
-								<h2>Wärme - Wasser - Wohlgefühl<br />dein Ruhepol am Fluss</h2>
+								<h2>Wärme - Wasser - Wohlgefühl<br />dein Ruhepol am Rhy</h2>
 								
 								<p><a class="btn btn-primary btn-lg" href="#feature-product">Get Started</a></p>
 							</div>
@@ -218,10 +218,10 @@ ob_start(); page_content(5); $fullbottom=ob_get_contents(); ob_end_clean(); // F
 								<?php echo date("Y");?> 
 								Lindli Sauna
 								<br>
-								powerd by <a href="https://rhysauna.ch" target="_blank">RhySauna
+								<!-- powerd by <a href="https://rhysauna.ch" target="_blank">RhySauna
                                 <br>
                                     <br>
-                                    <img src="<?php echo WB_URL;?>/pages/rhysauna_logo.png" width="25%">
+                                    <img src="<?php // echo WB_URL;?>/pages/rhysauna_logo.png" width="25%"> -->
                                 </a>
 							</p>
 						</div>
