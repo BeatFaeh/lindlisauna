@@ -75,7 +75,7 @@ ob_start(); page_content(5); $fullbottom=ob_get_contents(); ob_end_clean(); // F
 	register_frontend_modfiles('js');
 	?>
 
-    <?php echo "<script src='".WB_URL."/include/tablesort/tablesort.js' type='text/javascript'></script>"; ?>
+
 
 </head>
 <body>
@@ -96,7 +96,7 @@ ob_start(); page_content(5); $fullbottom=ob_get_contents(); ob_end_clean(); // F
 							<!-- SEE manual index.html for details -->
 								<h2>Wärme - Wasser - Wohlgefühl<br />dein Ruhepol am Rhy</h2>
 								
-								<p><a class="btn btn-primary btn-lg" href="#feature-product">Get Started</a></p>
+								<p><a class="btn btn-primary btn-lg" href="#feature-product">Starten</a></p>
 							</div>
 						</div>
 					</div>
@@ -260,7 +260,8 @@ ob_start(); page_content(5); $fullbottom=ob_get_contents(); ob_end_clean(); // F
 window.onscroll = function() {scrollFunction()};
 
 function scrollFunction() {
-  if (document.body.scrollTop > 280 || document.documentElement.scrollTop > 280) {
+  if (document.body.scrollTop > 280 || document.documentElement.scrollTop > 280)
+  {
     document.getElementById("myBtn").style.display = "block";
   } else {
     document.getElementById("myBtn").style.display = "none";

@@ -1,5 +1,7 @@
 <?php
 
+echo "<script src='" . WB_URL . "/include/tablesort/tablesort.js' type='text/javascript'></script>";
+
 // Datenbankverbindung
 $mysqli = new mysqli(DB_HOST, DB_USERNAME, DB_PASSWORD, DB_NAME);
 $mysqli->set_charset("utf8");
@@ -416,7 +418,7 @@ else
 				<option value='all' " . (is_null($limit) ? "selected" : "") . ">Alle</option>
 			</select>
 		</label>
-		<input type='submit' value='Anwenden' class='myButtonKlein'>
+		<input type='submit' value='Anzeige' class='myButtonKlein'>
 	</form>";
 
 	if ($result->num_rows > 0) 
