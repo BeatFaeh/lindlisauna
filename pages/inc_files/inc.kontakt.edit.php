@@ -190,7 +190,7 @@ echo"</select>
 		<td>";
 		if(empty($kontakt_termin))
 		{
-			echo "<input type='text' id='datepicker'  name='kontakt_termin'>";
+			echo "<input type='date' id='datepicker'  name='kontakt_termin'>";
 		}   
 		else
 		{

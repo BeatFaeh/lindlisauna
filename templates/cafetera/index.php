@@ -84,7 +84,7 @@ ob_start(); page_content(5); $fullbottom=ob_get_contents(); ob_end_clean(); // F
 		<!-- ############################################  -->
 		<!-- if you use mulitilang give here the page-id from the first lang pages otherwise delete next line -->
 		<!-- ############################################  -->
-		<?php if (PAGE_ID == 1 || PAGE_ID== 12 || PAGE_ID== 10) { ?>
+		<?php if (PAGE_ID == 1 ) { ?>
 		<div class="hero">
 			<div class="overlay"></div>
 			<div class="cover text-center" data-stellar-background-ratio="0.5" style="background-image: url(<?php echo TEMPLATE_DIR;?>/images/hero.jpg);">
