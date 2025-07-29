@@ -159,7 +159,7 @@ echo"</select>
 		<td><textarea rows='9' name='kontakt_mitteilung'>".$kontakt_mitteilung."</textarea></td>
 	</tr>
 
-	<tr><td colspan='2' style='text-align: center;'>Einträge durch Ruggero</td></tr>
+	<tr><td colspan='2' style='text-align: center;'>Einträge zur Erinnerung</td></tr>
 	
 	<tr>
 		<th>Bemerkung</th>
