@@ -195,6 +195,8 @@ ob_start(); page_content(5); $fullbottom=ob_get_contents(); ob_end_clean(); // F
 							<p>8200 Schaffhausen</p>
 							<!-- <p>Phone</p> -->
 							<p>info@lindlisauna.ch</p>
+                            <br>
+                            <img src="<?php echo WB_URL;?>/pages/lindlisauna_logo.png" width="50%">
 						</div>
 						<div class="col-md-6 col-sm-6 col-xs-12 footer-link">
 							<h2><i class="fa fa-map-marker"></i> Map</h2>
@@ -216,7 +218,11 @@ ob_start(); page_content(5); $fullbottom=ob_get_contents(); ob_end_clean(); // F
 								<?php echo date("Y");?> 
 								Lindli Sauna
 								<br>
-								powerd by <a href="https://rhysauna.ch" target="_blank">RhySauna</a>
+								powerd by <a href="https://rhysauna.ch" target="_blank">RhySauna
+                                <br>
+                                    <br>
+                                    <img src="<?php echo WB_URL;?>/pages/rhysauna_logo.png" width="25%">
+                                </a>
 							</p>
 						</div>
 					</div>
