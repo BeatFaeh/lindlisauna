@@ -250,6 +250,11 @@ if($error === false)
 	)";
 	$mysqli->query($sql);
 
+
+    $sql = "SELECT MAX(kontakt_id) AS max_kontakt_id FROM `tbl_kontakt`;";
+    $result = $database->query($sql)->fetchArray();
+    $max_kontakt_id = $result['max_kontakt_id'];
+
 	# Body zusammenbauen 	
 
 	$body =	
@@ -267,7 +272,7 @@ if($error === false)
 
 	<div style=\"width:600px;float:left;background-color:#FFFFFF;padding:10px;font-family:Verdana;font-size:16px;\">
 
-		<br><b>Kontaktbestätigung ".$kontakt_vname." ".$kontakt_nname." ".$tagesdatum."</b>
+		<br><b>Kontaktbestätigung ID = ".$max_kontakt_id." - ".$kontakt_anrede." ".$kontakt_vname." ".$kontakt_nname." - ".$tagesdatum."</b>
 		<br>
 		<br>Grüezi ".$kontakt_vname." ".$kontakt_nname."<br>
 		<br>Vielen Dank für Ihr E-Mail!
@@ -283,8 +288,13 @@ if($error === false)
 		<br>
 
 
-			<table ".$table.">
+		<table ".$table.">
 
+		<tr>
+			<td".$table_td_1.">Kontakt-ID</td>
+			<td".$table_td.">".$max_kontakt_id."</td>
+		</tr>
+		
 		<tr>
 			<td".$table_td_1.">Anrede</td>
 			<td".$table_td.">".$kontakt_anrede."</td>
