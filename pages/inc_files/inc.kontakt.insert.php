@@ -261,16 +261,12 @@ if($error === false)
 		"
 	<div style=\"width:600px;float:left;\">
 
-	<div style=\"padding-top:10px;padding-bottom:10px;width:700px;text-align:center;background-color:#003d99;font-family:Verdana;font-size:16px;color:#ffffff;\"> 
+	<div style=\"padding-top:25px;padding-bottom:25px;width:700px;text-align:center;background-color:#FFFFFF;font-family:Verdana;font-size:16px;color:#003d99;\"> 
 		<br>
-		<img src='".WB_URL."/pages/lindlisauna_logo.png' width='15%'>
-		<br>
-		<br>
-		Kontaktformular
-		<br><br>
-	</div>
+		<img src='".WB_URL."/pages/lindlisauna_logo_rund_schrift_dblau_3.png' width='50%'>
+		</div>
 
-	<div style=\"width:600px;float:left;background-color:#FFFFFF;padding:10px;font-family:Verdana;font-size:16px;\">
+	<div style=\"width:600px;float:left;background-color:#FFFFFF;padding:10px;font-family:Verdana;font-size:16px;color:#003d99;\">
 
 		<br><b>Kontaktbestätigung ID = ".$max_kontakt_id." - ".$kontakt_anrede." ".$kontakt_vname." ".$kontakt_nname." - ".$tagesdatum."</b>
 		<br>
@@ -279,7 +275,7 @@ if($error === false)
 		<br>Wir melden uns in Kürze wieder bei Ihnen.
 		<br>
 		<br>Freundliche Grüsse
-		<br>Team Lindlisauna
+		<br>Team Lindli Sauna
 		<br>
 		<br>info@lindlisauna.ch
 		<br>www.lindlisauna.ch
