@@ -199,7 +199,7 @@ ob_start(); page_content(5); $fullbottom=ob_get_contents(); ob_end_clean(); // F
 							<!-- <p>Phone</p> -->
 							<p>info@lindlisauna.ch</p>
                             <br>
-                            <img src="<?php echo WB_URL;?>/pages/lindlisauna_logo.png" width="50%">
+                            <img src="<?php echo WB_URL;?>/pages/lindlisauna_logo_rund_schrift_dblau_2.png" width="75%">
 						</div>
 						<div class="col-md-6 col-sm-6 col-xs-12 footer-link">
 							<h2><i class="fa fa-map-marker"></i> Map</h2>
