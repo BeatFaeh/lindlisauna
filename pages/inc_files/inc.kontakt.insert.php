@@ -663,7 +663,8 @@ else
 	$selectedValue = htmlentities($_POST['kontakt_grund']);
 	$myArray = array(
 		"allgemeine Frage",
-		"Kritik",
+		"Anmeldung Newsletter",
+        "Kritik",
 		"Mitarbeit",
 		"Reservation Sauna",
 		"Reservation Massageraum",
