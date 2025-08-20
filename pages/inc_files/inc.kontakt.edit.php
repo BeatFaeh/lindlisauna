@@ -137,6 +137,7 @@ echo"</select>
 	$selectedValue =$kontakt_grund;
 	$myArray = array(
 		"allgemeine Frage",
+        "Anmeldung Newsletter",
 		"Terminverschiebung / -absage",
 		"Beschwerde / Kritik",
 		"Beratung zur Behandlung",

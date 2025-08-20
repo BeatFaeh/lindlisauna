@@ -3,7 +3,10 @@
 header('Content-Type: text/html; charset=UTF-8');
 
 $mysqli = new mysqli(DB_HOST, DB_USERNAME, DB_PASSWORD, DB_NAME);
-$mysqli->set_charset("utf8");
+// $mysqli->set_charset("utf8");
+$mysqli->set_charset('utf8mb4'); // <— wichtig
+// optional zusätzlich:
+$mysqli->query("SET NAMES utf8mb4 COLLATE utf8mb4_unicode_ci");
 
 # --------------------------------------------------------------------------------------
 # Deklaration der Variablen
@@ -194,8 +197,6 @@ if($error === false)
 
 	$ipadresse = $_SERVER['REMOTE_ADDR'];
 
-	# POST Variablen übergeben
-
 	$kontakt_anrede     = $_POST['kontakt_anrede'];
 	$kontakt_vname      = htmlentities($_POST['kontakt_vname'], ENT_QUOTES, 'UTF-8');
 	$kontakt_nname      = htmlentities($_POST['kontakt_nname'], ENT_QUOTES, 'UTF-8');
@@ -343,25 +344,18 @@ if($error === false)
 	</div>
 	</div>";	
 
-	# E-Mail	
-
-	$cc_empfang = $senderEmail;
-	$bcc_empfang = "beat@faeh.sh";
-
-	$body = str_replace($zeichen_suchen,$zeichen_ersetzen,$body);
-	$empfaenger = str_replace($zeichen_suchen,$zeichen_ersetzen,$kontakt_email);
-
 	# Betreff
-	$betreff       = "Kontaktformular www.lindlisauna.ch";;
+	// $betreff       = "Kontaktformular ID = ".$max_kontakt_id." www.lindlisauna.ch";;
 
 	# Absender-E-Mail (Kunde)
-	$absenderEmail = $empfaenger;
+    $body = str_replace($zeichen_suchen,$zeichen_ersetzen,$body);
+    $absenderEmail = str_replace($zeichen_suchen,$zeichen_ersetzen,$kontakt_email);
 	# Name des Absenders (Kunde)
 	$absenderName  = $kontakt_vname." ".$kontakt_nname;
 
 	# Empfaenger
-	$empfaengerEmail = 'info@lindlisauna.ch';
-	$empfaengerNamen = 'Kontaktformular www.lindlisauna.ch';
+	// $empfaengerEmail = 'info@lindlisauna.ch';
+	// $empfaengerNamen = 'Kontaktformular www.lindlisauna.ch';
 
 	$bcc_empfang   = "beat@faeh.sh";
 
@@ -380,21 +374,14 @@ if($error === false)
 	$mail->IsHTML(true);
 	$mail->CharSet = 'UTF-8';
 
-	# Absender (Kunde)
-	/*
-    $mail->setFrom($absenderEmail, html_entity_decode($absenderName, ENT_QUOTES, 'UTF-8'));
-	$mail->addAddress($empfaengerEmail, $empfaengerNamen);
-	$mail->addBCC($bcc_empfang);
-    */
-
-    # From = eigene Domain (DMARC/SPF-sicher)
-    $mail->setFrom('no-reply@lindlisauna.ch', 'Lindli Sauna Kontaktformular');
+    # From
+    $mail->setFrom('info@lindlisauna.ch', 'Kontaktformular www.lindlisauna.ch');
 
     # Antworten sollen an den Nutzer gehen
     $mail->addReplyTo($absenderEmail, html_entity_decode($absenderName, ENT_QUOTES, 'UTF-8'));
 
     # Empfaenger: Verein
-    $mail->addAddress($empfaengerEmail, $empfaengerNamen);
+    $mail->addAddress('info@lindlisauna.ch', 'Kontaktformular www.lindlisauna.ch');
 
     # Kopie an den Absender schicken
     $mail->addCC($absenderEmail);
@@ -402,7 +389,9 @@ if($error === false)
     # BCC
     $mail->addBCC('beat@faeh.sh');
 
-	$mail->Subject = $betreff;
+	// $mail->Subject = $betreff;
+    $mail->Subject = "Kontaktformular #$max_kontakt_id – Lindli Sauna";
+
 	$html = stripslashes($body);
 	$mail->Body = $html;
 	$text = str_replace("<br/>","\n", $html);
