@@ -381,10 +381,27 @@ if($error === false)
 	$mail->CharSet = 'UTF-8';
 
 	# Absender (Kunde)
-	$mail->setFrom($absenderEmail, html_entity_decode($absenderName, ENT_QUOTES, 'UTF-8'));
-
+	/*
+    $mail->setFrom($absenderEmail, html_entity_decode($absenderName, ENT_QUOTES, 'UTF-8'));
 	$mail->addAddress($empfaengerEmail, $empfaengerNamen);
 	$mail->addBCC($bcc_empfang);
+    */
+
+    # From = eigene Domain (DMARC/SPF-sicher)
+    $mail->setFrom('no-reply@lindlisauna.ch', 'Lindli Sauna Kontaktformular');
+
+    # Antworten sollen an den Nutzer gehen
+    $mail->addReplyTo($absenderEmail, html_entity_decode($absenderName, ENT_QUOTES, 'UTF-8'));
+
+    # Empfaenger: Verein
+    $mail->addAddress($empfaengerEmail, $empfaengerNamen);
+
+    # Kopie an den Absender schicken
+    $mail->addCC($absenderEmail);
+
+    # BCC
+    $mail->addBCC('beat@faeh.sh');
+
 	$mail->Subject = $betreff;
 	$html = stripslashes($body);
 	$mail->Body = $html;
