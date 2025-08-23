@@ -172,8 +172,18 @@ if(isset($_POST['submit_insert']))
 		$error = true;
 		$kontakt_grundErr = "<font color='#FF0000'>bitte geben Sie einen Grund an</font>";
 	}	
-	
-	# kontakt_mitteilung	
+
+    # rsvs_mitglied
+
+    $rsvs_mitglieddErr = NULL;
+    if(strlen($_POST['rsvs_mitglied']) == 0)
+    {
+        $error = true;
+        $rsvs_mitglieddErr = "<font color='#FF0000'>bitte die Frage beantworten</font>";
+    }
+
+
+    # kontakt_mitteilung
 
 	$kontakt_mitteilungErr = NULL;
 	if(empty($_POST['kontakt_mitteilung']))
@@ -207,6 +217,9 @@ if($error === false)
 	$kontakt_land       = $_POST['kontakt_land'];
 	$kontakt_telefon    = $_POST['kontakt_telefon'];
 	$kontakt_grund      = htmlentities(trim($_POST['kontakt_grund']), ENT_QUOTES, 'UTF-8');
+
+    $rsvs_mitglied      = htmlentities(trim($_POST['rsvs_mitglied']), ENT_QUOTES, 'UTF-8');
+
 	$kontakt_mitteilung = htmlentities($_POST['kontakt_mitteilung'], ENT_QUOTES, 'UTF-8');
 
 	$empfaenger = str_replace($zeichen_suchen,$zeichen_ersetzen,$kontakt_email);
@@ -229,6 +242,7 @@ if($error === false)
 	`kontakt_land`,
 	`kontakt_telefon`,
 	`kontakt_grund`,
+	`rsvs_mitglied`, 
 	`kontakt_mitteilung`,
 	`ipadresse`
 	)
@@ -246,18 +260,18 @@ if($error === false)
 	'$kontakt_land',
 	'$kontakt_telefon',
 	'$kontakt_grund',
+	'$rsvs_mitglied', 
 	'$kontakt_mitteilung',
 	'$ipadresse'
 	)";
 	$mysqli->query($sql);
 
-
     $sql = "SELECT MAX(kontakt_id) AS max_kontakt_id FROM `tbl_kontakt`;";
     $result = $database->query($sql)->fetchArray();
     $max_kontakt_id = $result['max_kontakt_id'];
 
-	# Body zusammenbauen 	
-
+	# Body zusammenbauen
+    $kontakbestaetigung = html_entity_decode("Kontaktbestätigung ID = ".$max_kontakt_id." - ".$kontakt_anrede." ".$kontakt_vname." ".$kontakt_nname." - ".$tagesdatum, ENT_QUOTES, 'UTF-8');
 	$body =	
 		"
 	<div style=\"width:600px;float:left;\">
@@ -269,7 +283,7 @@ if($error === false)
 
 	<div style=\"width:600px;float:left;background-color:#FFFFFF;padding:10px;font-family:Verdana;font-size:16px;color:#003d99;\">
 
-		<br><b>Kontaktbestätigung ID = ".$max_kontakt_id." - ".$kontakt_anrede." ".$kontakt_vname." ".$kontakt_nname." - ".$tagesdatum."</b>
+		<br><b>Kontaktbestätigung ID = ".$kontakbestaetigung."</b>
 		<br>
 		<br>Grüezi ".$kontakt_vname." ".$kontakt_nname."<br>
 		<br>Vielen Dank für Ihr E-Mail!
@@ -321,10 +335,16 @@ if($error === false)
             <td".$table_td.">".$kontakt_land."</td></tr>
         <tr>
             <td".$table_td_1.">Telefon</td>
-            <td".$table_td.">".$kontakt_telefon."</td></tr>
+            <td".$table_td.">".$kontakt_telefon."</td>
+         </tr>
         <tr>
             <td".$table_td_1.">Kontaktgrund</td>
-            <td".$table_td.">".$kontakt_grund."</td></tr>
+            <td".$table_td.">".$kontakt_grund."</td>
+        </tr>
+        <tr>
+            <td".$table_td_1.">Mitglied RhySauna Verein Schaffhausen?</td>
+            <td".$table_td.">".$rsvs_mitglied."</td>
+        </tr>        
         <tr>
             <td".$table_td_1.">IP-Adresse</td>
             <td".$table_td.">".$ipadresse."</td>
@@ -390,7 +410,7 @@ if($error === false)
     $mail->addBCC('beat@faeh.sh');
 
 	// $mail->Subject = $betreff;
-    $mail->Subject = "Kontaktformular #$max_kontakt_id – Lindli Sauna";
+    $mail->Subject = $kontakbestaetigung;
 
 	$html = stripslashes($body);
 	$mail->Body = $html;
@@ -647,7 +667,46 @@ else
 	echo $kontakt_telefonErr."</td></tr>";
 
 	echo "<tr><td>&nbsp;</td></tr>";
-	
+
+    # Mitglieder RSVS ----------------------------------------------------------------------------------
+
+    // rsvs_mitglied
+
+
+    echo "
+	<tr>
+	<td><b>Mitglied RhySauna Verein Schaffhausen?</b> ".$mussfeld."
+	<br>
+	<select name='rsvs_mitglied' value='".htmlentities($_POST['rsvs_mitglied'])."'";
+    if(isset($errorFelder['rsvs_mitglied']) OR $rsvs_mitglieddErr > "")
+    {
+        echo "class='select_error'>";
+    }
+    else
+    {
+        echo " >";
+    }
+
+    echo "<option value=''>Bitte wählen&nbsp;&nbsp;</option>\n";
+
+    $selectedValue = htmlentities($_POST['rsvs_mitglied']);
+    $myArray = array(
+        "ja",
+        "nein"
+    );
+
+    foreach($myArray as $element)
+    {
+        $isSelected = ($selectedValue == $element) ? " selected" : "";
+        echo "<option value=\"".htmlentities($element, ENT_QUOTES)."\"$isSelected>".htmlentities($element)."</option>\n";
+    }
+
+    echo "</select>";
+    echo $rsvs_mitglieddErr."</td></tr>";
+
+    echo "<tr><td>&nbsp;</td></tr>";
+
+
 	# Kontaktgrund  ------------------------------------------------------------------------------------	
 	
 	echo "

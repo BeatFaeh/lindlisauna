@@ -40,6 +40,7 @@ if(isset($_POST['submit_edit']))
 			$kontakt_erinnerung = $field['kontakt_erinnerung'];
 			$kontakt_termin     = $field['kontakt_termin'];
 			$ipadresse          = $field['ipadresse'];
+            $rsvs_mitglied      = $field['rsvs_mitglied'];
 		}		
 
 	echo $action;
@@ -136,15 +137,15 @@ echo"</select>
 
 	$selectedValue =$kontakt_grund;
 	$myArray = array(
-		"allgemeine Frage",
+        "allgemeine Frage",
         "Anmeldung Newsletter",
-		"Terminverschiebung / -absage",
-		"Beschwerde / Kritik",
-		"Beratung zur Behandlung",
-		"Rückmeldung zur Behandlung",
-		"Anfrage für Hausbesuch",
-		"Nachfrage zu Preisen / Angeboten",
-		"Sonstiges"
+        "Kritik",
+        "Mitarbeit",
+        "Reservation Sauna",
+        "Reservation Massageraum",
+        "Reservation Seminarraum",
+        "Nachfrage zu Preisen / Angeboten",
+        "Sonstiges"
 	);
 	echo "<td>
 	<select class='form_input' name='kontakt_grund' value='".$kontakt_grund."'>
@@ -156,6 +157,27 @@ echo"</select>
 		echo "<option value=\"".htmlentities($element, ENT_QUOTES)."\"$isSelected>".htmlentities($element)."</option>\n";
 	}
 	echo "</select></td></tr>
+
+	<tr>
+	<th>Mitglied RhySauna Verein</th>";
+
+        $selectedValue = $rsvs_mitglied;
+        $myArray = array(
+            "ja",
+            "nein"
+        );
+
+        echo "<td>
+	<select class='form_input' name='rsvs_mitglied' value='".$rsvs_mitglied."'>
+	<option value=''>Bitte wählen&nbsp;&nbsp;</option>";
+
+        foreach($myArray as $element)
+        {
+            $isSelected = ($selectedValue == $element) ? " selected" : "";
+            echo "<option value=\"".htmlentities($element, ENT_QUOTES)."\"$isSelected>".htmlentities($element)."</option>\n";
+        }
+        echo "</select></td></tr>
+
 
 	<tr>
 		<th>Mitteilung</th>
@@ -234,64 +256,57 @@ echo"</select>
 # UPDATE
 elseif(isset($_POST['submit_update']))
 {
-	$kontakt_id         = $_POST['kontakt_id'];
-	$kontakt_anrede     = $_POST['kontakt_anrede'];
-	$kontakt_nname      = $_POST['kontakt_nname'];
-	$kontakt_vname      = $_POST['kontakt_vname'];
-	$kontakt_email      = $_POST['kontakt_email'];
-	$kontakt_adresse    = $_POST['kontakt_adresse'];
-	$kontakt_plz        = $_POST['kontakt_plz'];
-	$kontakt_ort        = $_POST['kontakt_ort'];
-	$kontakt_land       = $_POST['kontakt_land'];
-	$kontakt_telefon    = $_POST['kontakt_telefon'];
-	$kontakt_grund      = !empty($_POST['kontakt_grund']) ? "'{$_POST['kontakt_grund']}'" : 'NULL';
-	$kontakt_mitteilung = !empty($_POST['kontakt_mitteilung']) ? "'{$_POST['kontakt_mitteilung']}'" : 'NULL';
-	$kontakt_bemerkung  = !empty($_POST['kontakt_bemerkung']) ? "'{$_POST['kontakt_bemerkung']}'" : 'NULL';
-	$kontakt_erinnerung = !empty($_POST['kontakt_erinnerung']) ? "'{$_POST['kontakt_erinnerung']}'" : 'NULL';
-	$kontakt_termin     = !empty($_POST['kontakt_termin']) ? "'{$_POST['kontakt_termin']}'" : 'NULL';
+    $mysqli->set_charset('utf8mb4');
 
-	if(empty($kontakt_termin))
-	{
-		$kontakt_termin_sql = NULL;
-	}
-	else
-	{	
-		$kontakt_termin_sql = $_POST['kontakt_termin'];
-	}		
-	
-	# SQL-Statement
-	$sql = "
-	UPDATE `tbl_kontakt` SET
-	`kontakt_anrede`     = '$kontakt_anrede',
-	`kontakt_nname`      = '$kontakt_nname',
-	`kontakt_vname`      = '$kontakt_vname',
-	`kontakt_email`      = '$kontakt_email',
-	`kontakt_adresse`    = '$kontakt_adresse',
-	`kontakt_plz`        = '$kontakt_plz',
-	`kontakt_ort`        = '$kontakt_ort',
-	`kontakt_land`       = '$kontakt_land',
-	`kontakt_telefon`    = '$kontakt_telefon',
-	`kontakt_grund`      = $kontakt_grund,
-	`kontakt_mitteilung` = $kontakt_mitteilung,
-	`kontakt_bemerkung`  = $kontakt_bemerkung,
-	`kontakt_erinnerung` = $kontakt_erinnerung,
-	`kontakt_termin`     = '$kontakt_termin_sql'
-	WHERE `kontakt_id`   = '$kontakt_id';";
-	
-	$database->query($sql);
-	
-	/*
-	echo "SQL<br><pre>".$sql."</pre>";
-	echo "<p>&nbsp;</p>Kontakttermin  = ".$kontakt_termin;
-	echo "<p>&nbsp;</p>Kontakttermin SQL = ".$kontakt_termin_sql;
-	echo "<p>&nbsp;</p>Kontakttermin POST = ".$_POST['kontakt_termin'];
-	echo "<p>&nbsp;</p>Kontakttermin eng = ".datumswandler_eng($_POST['kontakt_termin']);	
-	echo var_dump($_POST);
-	*/
-	
+    // Helper
+    $q = fn($v) => ($v === '' || $v === null) ? 'NULL' : "'".$mysqli->real_escape_string($v)."'";
+
+    $kontakt_id         = (int)$_POST['kontakt_id'];
+    $kontakt_anrede     = $mysqli->real_escape_string($_POST['kontakt_anrede'] ?? '');
+    $kontakt_nname      = $mysqli->real_escape_string($_POST['kontakt_nname'] ?? '');
+    $kontakt_vname      = $mysqli->real_escape_string($_POST['kontakt_vname'] ?? '');
+    $kontakt_email      = $mysqli->real_escape_string($_POST['kontakt_email'] ?? '');
+    $kontakt_adresse    = $mysqli->real_escape_string($_POST['kontakt_adresse'] ?? '');
+    $kontakt_plz        = $mysqli->real_escape_string($_POST['kontakt_plz'] ?? '');
+    $kontakt_ort        = $mysqli->real_escape_string($_POST['kontakt_ort'] ?? '');
+    $kontakt_land       = $mysqli->real_escape_string($_POST['kontakt_land'] ?? '');
+    $kontakt_telefon    = $mysqli->real_escape_string($_POST['kontakt_telefon'] ?? '');
+
+    // Felder, die NULL sein dürfen:
+    $kontakt_grund      = $q($_POST['kontakt_grund']      ?? null);
+    $rsvs_mitglied      = $q($_POST['rsvs_mitglied']      ?? null);
+    $kontakt_mitteilung = $q($_POST['kontakt_mitteilung'] ?? null);
+    $kontakt_bemerkung  = $q($_POST['kontakt_bemerkung']  ?? null);
+    $kontakt_erinnerung = $q($_POST['kontakt_erinnerung'] ?? null);
+
+    // Datum korrekt: 'YYYY-MM-DD' oder NULL
+    $kontakt_termin_sql = $q($_POST['kontakt_termin'] ?? null);
+
+    $sql = "
+    UPDATE `tbl_kontakt` SET
+      `kontakt_anrede`     = '$kontakt_anrede',
+      `kontakt_nname`      = '$kontakt_nname',
+      `kontakt_vname`      = '$kontakt_vname',
+      `kontakt_email`      = '$kontakt_email',
+      `kontakt_adresse`    = '$kontakt_adresse',
+      `kontakt_plz`        = '$kontakt_plz',
+      `kontakt_ort`        = '$kontakt_ort',
+      `kontakt_land`       = '$kontakt_land',
+      `kontakt_telefon`    = '$kontakt_telefon',
+      `kontakt_grund`      = $kontakt_grund,
+      `rsvs_mitglied`      = $rsvs_mitglied,
+      `kontakt_mitteilung` = $kontakt_mitteilung,
+      `kontakt_bemerkung`  = $kontakt_bemerkung,
+      `kontakt_erinnerung` = $kontakt_erinnerung,
+      `kontakt_termin`     = $kontakt_termin_sql
+    WHERE `kontakt_id` = $kontakt_id
+    ";
+
+    $mysqli->query($sql) or die("SQL-Fehler: ".$mysqli->error);
+
 	echo $action;
 
-	echo "<div style='text-align: center;'>
+	echo "<div align='center'>
 
 	<table id='myTable'>
 
@@ -318,7 +333,8 @@ elseif(isset($_POST['submit_update']))
         </td>
 	</tr>
 	</table>
-	<p>&nbsp;</p>";
+	<p>&nbsp;</p>
+	</div>";
 }
 # Delete-Funktion
 elseif (isset($_POST['submit_delete'])) 
@@ -432,6 +448,7 @@ else
 				<th>ID</th>
 				<th>Eintrag</th>
 				<th>Kontakt</th>
+				<th>RSVS Mitglied</th>
 				<th>Mitteilung</th>
 				<th>Erinnerung</th>
 				<th>Bemerkung</th>
@@ -479,6 +496,8 @@ else
 					{$row['kontakt_telefon']}<br>
 					{$row['kontakt_email']}
 				</td>
+				<td>".$row['rsvs_mitglied']."</td>
+				
 				<td>".nl2br($row['kontakt_mitteilung'])."</td>
 				<td>".$erinnerung."</td>
 				<td>".nl2br($row['kontakt_bemerkung'])."</td>
