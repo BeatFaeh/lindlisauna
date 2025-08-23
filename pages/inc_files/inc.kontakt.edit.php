@@ -376,6 +376,7 @@ else
 			kontakt_land LIKE '%$escaped%' OR
 			kontakt_telefon LIKE '%$escaped%' OR
 			kontakt_email LIKE '%$escaped%' OR
+			rsvs_mitglied LIKE '%$escaped%' OR
 			kontakt_bemerkung LIKE '%$escaped%' OR
 			kontakt_mitteilung LIKE '%$escaped%'";
 	}
