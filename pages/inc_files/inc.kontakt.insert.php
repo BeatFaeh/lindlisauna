@@ -283,7 +283,7 @@ if($error === false)
 
 	<div style=\"width:600px;float:left;background-color:#FFFFFF;padding:10px;font-family:Verdana;font-size:16px;color:#003d99;\">
 
-		<br><b>Kontaktbestätigung ID = ".$kontakbestaetigung."</b>
+		<br><b>".$kontakbestaetigung."</b>
 		<br>
 		<br>Grüezi ".$kontakt_vname." ".$kontakt_nname."<br>
 		<br>Vielen Dank für Ihr E-Mail!
