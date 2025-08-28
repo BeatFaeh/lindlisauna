@@ -727,7 +727,8 @@ else
 
 	$selectedValue = htmlentities($_POST['kontakt_grund']);
 	$myArray = array(
-		"allgemeine Frage",
+        "Antrag Mitgliedschaft",
+        "allgemeine Frage",
 		"Anmeldung Newsletter",
         "Kritik",
 		"Mitarbeit",
