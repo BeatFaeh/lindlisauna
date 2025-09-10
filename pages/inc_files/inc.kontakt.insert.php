@@ -277,8 +277,7 @@ if($error === false)
 	<div style=\"width:600px;float:left;\">
 
 	<div style=\"padding-top:25px;padding-bottom:25px;width:700px;text-align:center;background-color:#FFFFFF;font-family:Verdana;font-size:16px;color:#003d99;\"> 
-		<br>
-		<img src='".WB_URL."/pages/lindlisauna_logo_rund_schrift_dblau_3.png' width='50%'>
+	<br>
 		</div>
 
 	<div style=\"width:600px;float:left;background-color:#FFFFFF;padding:10px;font-family:Verdana;font-size:16px;color:#003d99;\">
@@ -294,7 +293,9 @@ if($error === false)
 		<br>
 		<br>info@lindlisauna.ch
 		<br>www.lindlisauna.ch
-		 
+		<br>
+		<br>
+		<img src='".WB_URL."/pages/lindlisauna_logo_klein.png' width='50%'> 
 		<br>
 		<br>
 
