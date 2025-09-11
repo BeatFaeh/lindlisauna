@@ -455,6 +455,48 @@ else
 
 	echo "<table>";
 
+    # Kontaktgrund  ------------------------------------------------------------------------------------
+
+    echo "
+	<tr>
+	<td><b>Kontaktgrund</b> ".$mussfeld."
+	<br>
+	<select name='kontakt_grund' value='".htmlentities($_POST['kontakt_grund'])."'";
+    if(isset($errorFelder['kontakt_grund']) OR $kontakt_grundErr > "")
+    {
+        echo "class='select_error'>";
+    }
+    else
+    {
+        echo " >";
+    }
+
+    echo "<option value=''>Bitte wählen&nbsp;&nbsp;</option>\n";
+
+    $selectedValue = htmlentities($_POST['kontakt_grund']);
+    $myArray = array(
+        "Antrag Mitgliedschaft",
+        "allgemeine Frage",
+        "Anmeldung Newsletter",
+        "Kritik",
+        "Mitarbeit",
+        "Reservation Sauna",
+        "Reservation Massageraum",
+        "Reservation Seminarraum",
+        "Nachfrage zu Preisen / Angeboten",
+        "Sonstiges"
+    );
+
+    foreach($myArray as $element)
+    {
+        $isSelected = ($selectedValue == $element) ? " selected" : "";
+        echo "<option value=\"".htmlentities($element, ENT_QUOTES)."\"$isSelected>".htmlentities($element)."</option>\n";
+    }
+
+    echo "</select>";
+    echo $kontakt_grundErr."</td></tr>";
+
+    echo "<tr><td>&nbsp;</td></tr>";
 
 	# Anrede - Pflichtfeld ------------------------------------------------------------------------------------
 
@@ -707,50 +749,6 @@ else
 
     echo "<tr><td>&nbsp;</td></tr>";
 
-
-	# Kontaktgrund  ------------------------------------------------------------------------------------	
-	
-	echo "
-	<tr>
-	<td><b>Kontaktgrund</b> ".$mussfeld."
-	<br>
-	<select name='kontakt_grund' value='".htmlentities($_POST['kontakt_grund'])."'";
-	if(isset($errorFelder['kontakt_grund']) OR $kontakt_grundErr > "")
-	{ 
-		echo "class='select_error'>";
-	} 
-	else
-	{
-		echo " >";
-	}
-
-	echo "<option value=''>Bitte wählen&nbsp;&nbsp;</option>\n";
-
-	$selectedValue = htmlentities($_POST['kontakt_grund']);
-	$myArray = array(
-        "Antrag Mitgliedschaft",
-        "allgemeine Frage",
-		"Anmeldung Newsletter",
-        "Kritik",
-		"Mitarbeit",
-		"Reservation Sauna",
-		"Reservation Massageraum",
-        "Reservation Seminarraum",
-		"Nachfrage zu Preisen / Angeboten",
-		"Sonstiges"
-	);
-
-	foreach($myArray as $element)
-	{
-		$isSelected = ($selectedValue == $element) ? " selected" : "";
-		echo "<option value=\"".htmlentities($element, ENT_QUOTES)."\"$isSelected>".htmlentities($element)."</option>\n";
-	}
-
-	echo "</select>";
-	echo $kontakt_grundErr."</td></tr>";
-	
-	echo "<tr><td>&nbsp;</td></tr>";
-	
 	# MITTEILUNG ------------------------------------------------------------------------------------
 
 	echo "
