@@ -79,10 +79,17 @@ if(isset($_POST['submit_insert']))
 	if(empty($_SESSION['captcha_code'] ) || strcasecmp($_SESSION['captcha_code'], $_POST['captcha_code']) != 0)
 	{
 		$captachcheck = "<br><font color='#FF0000'>der Captacha Code stimmt nicht</font>";
-	}	
+	}
 
+    # kontakt_grund
 
-	# kontakt_anrede
+    $kontakt_grundErr = NULL;
+    if(strlen($_POST['kontakt_grund']) == 0)
+    {
+        $error = true;
+        $kontakt_grundErr = "<font color='#FF0000'>bitte geben Sie einen Grund an</font>";
+    }
+    # kontakt_anrede
 
 	$kontakt_anredeErr = NULL;
 	if(strlen($_POST['kontakt_anrede']) == 0)
@@ -164,15 +171,6 @@ if(isset($_POST['submit_insert']))
 		$kontakt_telefonErr = "<font color='#FF0000'>die Telefonnummer ist zu kurz oder beinhaltet Sonderzeichen</font>";
 	}	
 
-	# kontakt_grund
-
-	$kontakt_grundErr = NULL;
-	if(strlen($_POST['kontakt_grund']) == 0)
-	{
-		$error = true;
-		$kontakt_grundErr = "<font color='#FF0000'>bitte geben Sie einen Grund an</font>";
-	}	
-
     # rsvs_mitglied
 
     $rsvs_mitglieddErr = NULL;
@@ -185,17 +183,32 @@ if(isset($_POST['submit_insert']))
 
     # kontakt_mitteilung
 
-	$kontakt_mitteilungErr = NULL;
-	if(empty($_POST['kontakt_mitteilung']))
-	{
-		$error = true;
-		$kontakt_mitteilungErr = "<font color='#FF0000'>bitte Ihre Mitteilung eintragen</font>";
-	}		
-	elseif(preg_match("/\b(?:(?:https?|ftp):\/\/|www\.)[-a-z0-9+&@#\/%?=~_|!:,.;]*[-a-z0-9+&@#\/%=~_|]/i",$_POST['kontakt_mitteilung']))
-	{
-		$error = true;
-		$kontakt_mitteilungErr = "<font color='#FF0000'>bei der Mitteilung bitte keine Internetadresse eintragen</font>";
-	}		
+    if($_POST['kontakt_grund'] != 'Antrag Mitgliedschaft' && $_POST['kontakt_grund'] != 'Anmeldung Newsletter')
+    {
+
+        $kontakt_mitteilungErr = NULL;
+        if (empty($_POST['kontakt_mitteilung'])) {
+            $error = true;
+            $kontakt_mitteilungErr = "<font color='#FF0000'>bitte Ihre Mitteilung eintragen</font>";
+        } elseif (preg_match("/\b(?:(?:https?|ftp):\/\/|www\.)[-a-z0-9+&@#\/%?=~_|!:,.;]*[-a-z0-9+&@#\/%=~_|]/i", $_POST['kontakt_mitteilung'])) {
+            $error = true;
+            $kontakt_mitteilungErr = "<font color='#FF0000'>bei der Mitteilung bitte keine Internetadresse eintragen</font>";
+        }
+    }
+/*
+     if($_POST['kontakt_grund'] != 'Anmeldung Newsletter')
+     {
+
+            $kontakt_mitteilungErr = NULL;
+            if (empty($_POST['kontakt_mitteilung'])) {
+                $error = true;
+                $kontakt_mitteilungErr = "<font color='#FF0000'>bitte Ihre Mitteilung eintragen</font>";
+            } elseif (preg_match("/\b(?:(?:https?|ftp):\/\/|www\.)[-a-z0-9+&@#\/%?=~_|!:,.;]*[-a-z0-9+&@#\/%=~_|]/i", $_POST['kontakt_mitteilung'])) {
+                $error = true;
+                $kontakt_mitteilungErr = "<font color='#FF0000'>bei der Mitteilung bitte keine Internetadresse eintragen</font>";
+            }
+     }
+*/
 }
 
 # --------------------------------------------------------------------------------------
@@ -476,8 +489,8 @@ else
     $selectedValue = htmlentities($_POST['kontakt_grund']);
     $myArray = array(
         "Antrag Mitgliedschaft",
-        "allgemeine Frage",
         "Anmeldung Newsletter",
+        "allgemeine Frage",
         "Kritik",
         "Mitarbeit",
         "Reservation Sauna",
@@ -818,3 +831,5 @@ echo "SQL<br><pre>".$sql."</pre>";
 echo "<br>mitteilungErr".$kontakt_mitteilungErr."<br>";
 echo var_dump($_POST);
 */
+Echo "Kontaktgrund = ".$_POST['kontakt_grund'];
+
