@@ -14,37 +14,37 @@ echo "<div align='center'>";
 # EDIT
 if(isset($_POST['submit_edit']))
 {
-	# Datensatz anzeigen
-	if(isset($_POST['submit_auswahl']))
-	{
-		$id = $_POST['submit_auswahl'];
-		$sql = "SELECT * FROM `tbl_kontakt` WHERE `kontakt_id` = '$id'";
-		$query_fields = $database->query($sql);
-		
-		while($field = $query_fields->fetchRow(MYSQLI_ASSOC)) 
-		{
-			$kontakt_id         = $field['kontakt_id'];
-			$kontakt_eintrag    = $field['kontakt_eintrag'];
-			$kontakt_anrede     = $field['kontakt_anrede'];
-			$kontakt_nname      = $field['kontakt_nname'];
-			$kontakt_vname      = $field['kontakt_vname'];
-			$kontakt_email      = $field['kontakt_email'];
-			$kontakt_adresse    = $field['kontakt_adresse'];
-			$kontakt_plz        = $field['kontakt_plz'];
-			$kontakt_ort        = $field['kontakt_ort'];
-			$kontakt_land       = $field['kontakt_land'];
-			$kontakt_telefon    = $field['kontakt_telefon'];
-			$kontakt_grund      = $field['kontakt_grund'];
-			$kontakt_mitteilung = $field['kontakt_mitteilung'];
-			$kontakt_bemerkung  = $field['kontakt_bemerkung'];
-			$kontakt_erinnerung = $field['kontakt_erinnerung'];
-			$kontakt_termin     = $field['kontakt_termin'];
-			$ipadresse          = $field['ipadresse'];
-            $rsvs_mitglied      = $field['rsvs_mitglied'];
-		}		
+    # Datensatz anzeigen
+    if(isset($_POST['submit_auswahl']))
+    {
+        $id = $_POST['submit_auswahl'];
+        $sql = "SELECT * FROM `tbl_kontakt` WHERE `kontakt_id` = '$id'";
+        $query_fields = $database->query($sql);
 
-	echo $action;
-	echo "<table class='sortierbar' id='myTable'>
+        while($field = $query_fields->fetchRow(MYSQLI_ASSOC))
+        {
+            $kontakt_id         = $field['kontakt_id'];
+            $kontakt_eintrag    = $field['kontakt_eintrag'];
+            $kontakt_anrede     = $field['kontakt_anrede'];
+            $kontakt_nname      = $field['kontakt_nname'];
+            $kontakt_vname      = $field['kontakt_vname'];
+            $kontakt_email      = $field['kontakt_email'];
+            $kontakt_adresse    = $field['kontakt_adresse'];
+            $kontakt_plz        = $field['kontakt_plz'];
+            $kontakt_ort        = $field['kontakt_ort'];
+            $kontakt_land       = $field['kontakt_land'];
+            $kontakt_telefon    = $field['kontakt_telefon'];
+            $kontakt_grund      = $field['kontakt_grund'];
+            $kontakt_mitteilung = $field['kontakt_mitteilung'];
+            $kontakt_bemerkung  = $field['kontakt_bemerkung'];
+            $kontakt_erinnerung = $field['kontakt_erinnerung'];
+            $kontakt_termin     = $field['kontakt_termin'];
+            $ipadresse          = $field['ipadresse'];
+            $rsvs_mitglied      = $field['rsvs_mitglied'];
+        }
+
+        echo $action;
+        echo "<table class='sortierbar' id='myTable'>
 	<tr>
 		<th>Datensatz-ID</th>
 		<td>".$kontakt_id."</td>
@@ -63,15 +63,15 @@ if(isset($_POST['submit_edit']))
         <select class='form_input' name='kontakt_anrede'>
             <option value=''>Bitte wählen&nbsp;&nbsp;</option>";
 
-            $selectedValue = $kontakt_anrede;
-            $options = ["Frau", "Herr"];
-            foreach ($options as $option)
-												{
-                $selected = ($selectedValue === $option) ? " selected" : "";
-                echo "<option value=\"{$option}\"{$selected}>{$option}</option>";
-            }
+        $selectedValue = $kontakt_anrede;
+        $options = ["Frau", "Herr"];
+        foreach ($options as $option)
+        {
+            $selected = ($selectedValue === $option) ? " selected" : "";
+            echo "<option value=\"{$option}\"{$selected}>{$option}</option>";
+        }
 
-echo"</select>
+        echo"</select>
     </td>
 </tr>
 
@@ -107,25 +107,25 @@ echo"</select>
 	</tr>
 
 	<tr><th>Land</th>";
-	$selectedValue = $kontakt_land;
-	$myArray = array(
-		"Schweiz",
-		"Deutschland",
-		"Österreich",
-		"Italien",
-		"Frankreich",
-		"andere"
-	);
-	echo "<td>
+        $selectedValue = $kontakt_land;
+        $myArray = array(
+            "Schweiz",
+            "Deutschland",
+            "Österreich",
+            "Italien",
+            "Frankreich",
+            "andere"
+        );
+        echo "<td>
 	<select class='form_input' name='kontakt_land' value='".$kontakt_land."'>
 	<option value=''>Bitte wählen&nbsp;&nbsp;</option>";
 
-	foreach($myArray as $element)
-	{
-		$isSelected = ($selectedValue == $element) ? " selected" : "";
-		echo "<option value=\"".htmlentities($element, ENT_QUOTES)."\"$isSelected>".htmlentities($element)."</option>\n";
-	}
-	echo "</select></td></tr>
+        foreach($myArray as $element)
+        {
+            $isSelected = ($selectedValue == $element) ? " selected" : "";
+            echo "<option value=\"".htmlentities($element, ENT_QUOTES)."\"$isSelected>".htmlentities($element)."</option>\n";
+        }
+        echo "</select></td></tr>
 
 	<tr>
 		<th>Telefon</th>
@@ -135,29 +135,29 @@ echo"</select>
 	<tr>
 	<th>Kontaktgrund</th>";
 
-	$selectedValue =$kontakt_grund;
-	$myArray = array(
-        "Antrag Mitgliedschaft",
-        "allgemeine Frage",
-        "Anmeldung Newsletter",
-        "Kritik",
-        "Mitarbeit",
-        "Reservation Sauna",
-        "Reservation Massageraum",
-        "Reservation Seminarraum",
-        "Nachfrage zu Preisen / Angeboten",
-        "Sonstiges"
-	);
-	echo "<td>
+        $selectedValue =$kontakt_grund;
+        $myArray = array(
+            "Antrag Mitgliedschaft",
+            "allgemeine Frage",
+            "Anmeldung Newsletter",
+            "Kritik",
+            "Mitarbeit",
+            "Reservation Sauna",
+            "Reservation Massageraum",
+            "Reservation Seminarraum",
+            "Nachfrage zu Preisen / Angeboten",
+            "Sonstiges"
+        );
+        echo "<td>
 	<select class='form_input' name='kontakt_grund' value='".$kontakt_grund."'>
 	<option value=''>Bitte wählen&nbsp;&nbsp;</option>";
 
-	foreach($myArray as $element)
-	{
-		$isSelected = ($selectedValue == $element) ? " selected" : "";
-		echo "<option value=\"".htmlentities($element, ENT_QUOTES)."\"$isSelected>".htmlentities($element)."</option>\n";
-	}
-	echo "</select></td></tr>
+        foreach($myArray as $element)
+        {
+            $isSelected = ($selectedValue == $element) ? " selected" : "";
+            echo "<option value=\"".htmlentities($element, ENT_QUOTES)."\"$isSelected>".htmlentities($element)."</option>\n";
+        }
+        echo "</select></td></tr>
 
 	<tr>
 	<th>Mitglied RhySauna Verein</th>";
@@ -198,15 +198,15 @@ echo"</select>
         <select class='form_input' name='kontakt_erinnerung'>
             <option value=''>Bitte wählen&nbsp;&nbsp;</option>";
 
-            $selectedValue = $kontakt_erinnerung;
-            $options = ["ja", "nein"];
-            foreach ($options as $option)
-												{
-                $selected = ($selectedValue === $option) ? " selected" : "";
-                echo "<option value=\"{$option}\"{$selected}>{$option}</option>";
-            }
+        $selectedValue = $kontakt_erinnerung;
+        $options = ["ja", "nein"];
+        foreach ($options as $option)
+        {
+            $selected = ($selectedValue === $option) ? " selected" : "";
+            echo "<option value=\"{$option}\"{$selected}>{$option}</option>";
+        }
 
-echo"</select>
+        echo"</select>
     </td>
 </tr>
 
@@ -214,17 +214,17 @@ echo"</select>
 	<tr>
 		<th>Erinnerung Termin</th>
 		<td>";
-		if(empty($kontakt_termin))
-		{
-			echo "<input type='date' id='datepicker'  name='kontakt_termin'>";
-		}   
-		else
-		{
-			// echo "<input type='text' id='datepicker'  name='kontakt_termin' value='".datumswandler_ger($kontakt_termin)."'>";
+        if(empty($kontakt_termin))
+        {
+            echo "<input type='date' id='datepicker'  name='kontakt_termin'>";
+        }
+        else
+        {
+            // echo "<input type='text' id='datepicker'  name='kontakt_termin' value='".datumswandler_ger($kontakt_termin)."'>";
             echo "<input style='width: 150px;' id='arrival' type='date' name='kontakt_termin' value='" .$kontakt_termin. "'>";
-		}				   
-	
-	echo "</td>
+        }
+
+        echo "</td>
 	</tr>		
 
 	<tr>
@@ -246,13 +246,13 @@ echo"</select>
 	</table>
 	</form>
 	<p>&nbsp;</p>";
-	
-	}
-	else
-	{
-		echo "<p>Bitte w&auml;hlen Sie einen Datensatz mittels Radiobutton aus!";
-		echo $go_back;
-	}	
+
+    }
+    else
+    {
+        echo "<p>Bitte w&auml;hlen Sie einen Datensatz mittels Radiobutton aus!";
+        echo $go_back;
+    }
 }
 # UPDATE
 elseif(isset($_POST['submit_update']))
@@ -305,9 +305,9 @@ elseif(isset($_POST['submit_update']))
 
     $mysqli->query($sql) or die("SQL-Fehler: ".$mysqli->error);
 
-	echo $action;
+    echo $action;
 
-	echo "<div align='center'>
+    echo "<div align='center'>
 
 	<table id='myTable'>
 
@@ -338,35 +338,52 @@ elseif(isset($_POST['submit_update']))
 	</div>";
 }
 # Delete-Funktion
-elseif (isset($_POST['submit_delete'])) 
+elseif (isset($_POST['submit_delete']))
 {
-	if(isset($_POST['submit_auswahl']))
-	{    
-		$kontakt_id = intval($_POST['submit_auswahl']);
-		$sql = "DELETE FROM `tbl_kontakt` WHERE `kontakt_id` = '$kontakt_id'";
-		$mysqli->query($sql);
-		echo $go_back;
-		echo "<div style='color: red; font-weight: bold;'>Der Datensatz $kontakt_id wurde erfolgreich gelöscht.</div>";
-	}
-	else
-	{
-		echo "<p>Bitte w&auml;hlen Sie einen Datensatz mittels Radiobutton aus!";
-		echo $go_back;		
-	}
+    if(isset($_POST['submit_auswahl']))
+    {
+        $kontakt_id = intval($_POST['submit_auswahl']);
+        $sql = "DELETE FROM `tbl_kontakt` WHERE `kontakt_id` = '$kontakt_id'";
+        $mysqli->query($sql);
+        echo $go_back;
+        echo "<div style='color: red; font-weight: bold;'>Der Datensatz $kontakt_id wurde erfolgreich gelöscht.</div>";
+    }
+    else
+    {
+        echo "<p>Bitte w&auml;hlen Sie einen Datensatz mittels Radiobutton aus!";
+        echo $go_back;
+    }
 }
 else
-{	
-	# Filter- & Pagingparameter holen
-	$search = isset($_GET['search']) ? trim($_GET['search']) : '';
-	$limit = isset($_GET['limit']) && $_GET['limit'] !== 'all' ? intval($_GET['limit']) : null;
-	$page = isset($_GET['page']) ? max(1, intval($_GET['page'])) : 1;
-	$offset = ($limit) ? ($page - 1) * $limit : 0;
+{
+    # Filter- & Pagingparameter holen
+    $search = isset($_GET['search']) ? trim($_GET['search']) : '';
+    $limit = isset($_GET['limit']) && $_GET['limit'] !== 'all' ? intval($_GET['limit']) : null;
+    $page = isset($_GET['page']) ? max(1, intval($_GET['page'])) : 1;
+    $offset = ($limit) ? ($page - 1) * $limit : 0;
 
-	// SQL für Zählen + Filter
-	$filter_sql = "";
-	if (!empty($search)) {
-		$escaped = $mysqli->real_escape_string($search);
-		$filter_sql = " WHERE 
+    // [NEU] ausgewählter kontakt_grund (GET), Default "Alle"
+    $grund = isset($_GET['kontakt_grund']) ? trim($_GET['kontakt_grund']) : 'Alle'; // [NEU]
+
+    // [NEU] Dropdown-Optionen dynamisch aus DB laden
+    $grund_options = []; // [NEU]
+    $opt_sql = "SELECT DISTINCT kontakt_grund 
+                FROM tbl_kontakt 
+                WHERE kontakt_grund IS NOT NULL AND kontakt_grund <> '' 
+                ORDER BY kontakt_grund"; // [NEU]
+    if ($opt_res = $mysqli->query($opt_sql)) { // [NEU]
+        while ($opt_row = $opt_res->fetch_assoc()) {
+            $grund_options[] = $opt_row['kontakt_grund'];
+        }
+        $opt_res->free();
+    }
+
+    // SQL für Zählen + Filter
+    $clauses = []; // [NEU]
+
+    if (!empty($search)) {
+        $escaped = $mysqli->real_escape_string($search);
+        $clauses[] = "( 
 			kontakt_id LIKE '%$escaped%' OR
 			kontakt_anrede LIKE '%$escaped%' OR
 			kontakt_vname LIKE '%$escaped%' OR
@@ -379,26 +396,43 @@ else
 			kontakt_email LIKE '%$escaped%' OR
 			rsvs_mitglied LIKE '%$escaped%' OR
 			kontakt_bemerkung LIKE '%$escaped%' OR
-			kontakt_mitteilung LIKE '%$escaped%'";
-	}
+			kontakt_mitteilung LIKE '%$escaped%'
+        )";
+    }
 
-	$count_sql = "SELECT COUNT(*) AS total FROM tbl_kontakt" . $filter_sql;
-	$total_result = $mysqli->query($count_sql);
-	$total_row = $total_result->fetch_assoc();
-	$total_entries = $total_row['total'];
-	$total_pages = ($limit) ? ceil($total_entries / $limit) : 1;
+    // [NEU] Filter für kontakt_grund anwenden (außer "Alle")
+    if ($grund !== '' && strcasecmp($grund, 'Alle') !== 0) {
+        $grund_esc = $mysqli->real_escape_string($grund);
+        $clauses[] = "kontakt_grund = '$grund_esc'";
+    }
 
-	# Hauptabfrage
-	$data_sql = "SELECT * FROM tbl_kontakt";
-	if ($filter_sql) $data_sql .= $filter_sql;
-	$data_sql .= " ORDER BY kontakt_id DESC";
-	if ($limit) $data_sql .= " LIMIT $limit OFFSET $offset";
+    $filter_sql = '';
+    if (!empty($clauses)) {
+        $filter_sql = ' WHERE ' . implode(' AND ', $clauses);
+    }
 
-	$result = $mysqli->query($data_sql);
+    $count_sql = "SELECT COUNT(*) AS total FROM tbl_kontakt" . $filter_sql;
+    $total_result = $mysqli->query($count_sql);
+    $total_row = $total_result->fetch_assoc();
+    $total_entries = $total_row['total'];
+    $total_pages = ($limit) ? ceil($total_entries / $limit) : 1;
 
-	# HTML-Ausgabe Start
+    # Hauptabfrage
+    $data_sql = "SELECT * FROM tbl_kontakt";
+    if ($filter_sql) $data_sql .= $filter_sql;
+    $data_sql .= " ORDER BY kontakt_id DESC";
+    if ($limit) $data_sql .= " LIMIT $limit OFFSET $offset";
 
-	echo "<!DOCTYPE html>
+    $result = $mysqli->query($data_sql);
+
+    // [NEU] Zähler für Anzeige
+    $shown  = ($result) ? $result->num_rows : 0; // [NEU]
+    $from   = ($total_entries > 0) ? ( $limit ? ($offset + 1) : 1 ) : 0; // [NEU]
+    $to     = ($limit ? ($offset + $shown) : $shown); // [NEU]
+
+    # HTML-Ausgabe Start
+
+    echo "<!DOCTYPE html>
 	<html lang='de'>
 
 	<head>
@@ -437,23 +471,37 @@ else
 				<option value='all' " . (is_null($limit) ? "selected" : "") . ">Alle</option>
 			</select>
 		</label>
+
+        <!-- [NEU] Kombobox für kontakt_grund -->
+        <label class='myLabel'>Kontaktgrund:
+            <select name='kontakt_grund' onchange='this.form.submit()'>
+                <option value='Alle'".(strcasecmp($grund,'Alle')===0 ? " selected" : "").">Alle</option>";
+    foreach ($grund_options as $opt) {
+        $sel = ($grund === $opt) ? " selected" : "";
+        echo "<option value='".htmlspecialchars($opt, ENT_QUOTES)."'$sel>".htmlspecialchars($opt)."</option>";
+    }
+    echo "  </select>
+        </label>
 		<input type='submit' value='Anzeige' class='myButtonKlein'>
 	</form>";
 
-	if ($result->num_rows > 0) 
-	{
-		echo "<form action='".$_SERVER['PHP_SELF']."' method='POST'>
+    // [NEU] Anzeige der Anzahl Datensätze (keine Layout-Änderung)
+    echo "<div style='margin:5px 0;color:#555;'>
+            Angezeigt: <strong>$shown</strong>"
+        . ($limit ? " (Datensätze $from–$to von <strong>$total_entries</strong>)" : " von <strong>$total_entries</strong> gesamt")
+        . "</div>";
+
+    if ($result->num_rows > 0)
+    {
+        echo "<form action='".$_SERVER['PHP_SELF']."' method='POST'>
 		<div class='table-scrollable'>
 		<table class='sortierbar' id='myTableNormal'>
 		<thead>
 			<tr>
 				<th>ID</th>
-				<th>Eintrag</th>
+				<th>Typ</th>
 				<th>Kontakt</th>
-				<th>RSVS Mitglied</th>
-				<th>Mitteilung</th>
 				<th>Erinnerung</th>
-				<th>Bemerkung</th>
 				<th>Termin</th>
 				<th>Auswahl</th>
 				<th>edit</th>
@@ -462,33 +510,33 @@ else
 		</thead>
 		<tbody>";
 
-		while ($row = $result->fetch_assoc())
-		{
-			if (empty($row['kontakt_termin'])) 
-			{
-				$termin = NULL;
-			}
-			elseif ($row['kontakt_termin'] === '0000-00-00')
-			{
-				$termin = NULL;
-			}
-			else
-			{
-				$termin = datumswandler_ger($row['kontakt_termin']);
-			}
-			
-			if (empty($row['kontakt_erinnerung'])) 
-			{
-				$erinnerung = NULL;
-			}
-			else
-			{
-				$erinnerung = $row['kontakt_erinnerung'];
-			}  			
-			
-			echo "<tr>
+        while ($row = $result->fetch_assoc())
+        {
+            if (empty($row['kontakt_termin']))
+            {
+                $termin = NULL;
+            }
+            elseif ($row['kontakt_termin'] === '0000-00-00')
+            {
+                $termin = NULL;
+            }
+            else
+            {
+                $termin = datumswandler_ger($row['kontakt_termin']);
+            }
+
+            if (empty($row['kontakt_erinnerung']))
+            {
+                $erinnerung = NULL;
+            }
+            else
+            {
+                $erinnerung = $row['kontakt_erinnerung'];
+            }
+
+            echo "<tr>
 				<td>{$row['kontakt_id']}</td>
-				<td>".datumswandler_ger($row['kontakt_eintrag'])."</td>
+                <td>{$row['kontakt_grund']}</td>
 				<td>
 					{$row['kontakt_anrede']}<br>
 					{$row['kontakt_vname']} {$row['kontakt_nname']}<br>
@@ -498,12 +546,10 @@ else
 					{$row['kontakt_telefon']}<br>
 					{$row['kontakt_email']}
 				</td>
-				<td>".$row['rsvs_mitglied']."</td>
 				
-				<td>".nl2br($row['kontakt_mitteilung'])."</td>
-				<td>".$erinnerung."</td>
-				<td>".nl2br($row['kontakt_bemerkung'])."</td>
-				<td>".$termin."</td>
+				<td>".($erinnerung ?? '')."</td>
+
+				<td>".($termin ?? '')."</td>
 
 
 				<td style='text-align: center;'>
@@ -519,33 +565,33 @@ else
 					onclick=\"return confirm('Wirklich löschen: Datensatz {$row['kontakt_id']}?')\">
 				</td>
 			</tr>";
-		}
+        }
 
-		echo "</tbody>
+        echo "</tbody>
 		</table>
 		</form>
 		</div>";
-	} else {
-		echo "<p>Keine Datensätze gefunden.</p>";
-	}
+    } else {
+        echo "<p>Keine Datensätze gefunden.</p>";
+    }
 
-	# PAGINATION
-	if ($limit) {
-		echo "<div class='pagination center'>";
-		if ($page > 1) {
-			echo "<a href='?page=" . ($page - 1) . "&limit=$limit&search=" . urlencode($search) . "'>&laquo; Zurück</a>";
-		}
-		for ($i = 1; $i <= $total_pages; $i++) {
-			$active = ($i == $page) ? "active" : "";
-			echo "<a class='$active' href='?page=$i&limit=$limit&search=" . urlencode($search) . "'>$i</a>";
-		}
-		if ($page < $total_pages) {
-			echo "<a href='?page=" . ($page + 1) . "&limit=$limit&search=" . urlencode($search) . "'>Weiter &raquo;</a>";
-		}
-		echo "</div>";
-	}
+    # PAGINATION
+    if ($limit) {
+        echo "<div class='pagination center'>";
+        if ($page > 1) {
+            echo "<a href='?page=" . ($page - 1) . "&limit=$limit&search=" . urlencode($search) . "&kontakt_grund=" . urlencode($grund) . "'>&laquo; Zurück</a>";
+        }
+        for ($i = 1; $i <= $total_pages; $i++) {
+            $active = ($i == $page) ? "active" : "";
+            echo "<a class='$active' href='?page=$i&limit=$limit&search=" . urlencode($search) . "&kontakt_grund=" . urlencode($grund) . "'>$i</a>";
+        }
+        if ($page < $total_pages) {
+            echo "<a href='?page=" . ($page + 1) . "&limit=$limit&search=" . urlencode($search) . "&kontakt_grund=" . urlencode($grund) . "'>Weiter &raquo;</a>";
+        }
+        echo "</div>";
+    }
 
-	echo "<p>&nbsp;</p></body></html>";
+    echo "<p>&nbsp;</p></body></html>";
 }
 echo "</div>";
 ?>
