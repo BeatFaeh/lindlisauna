@@ -19,7 +19,7 @@ $email_font = "<font color='#333' face='Verdana,Geneva,Arial' size='2'>";
 $mussfeld = "<font color='#FF0000'>(&#8727;)</font>";
 
 $table = " style='border-collapse: collapse;border: 1px solid #999;border-spacing:0;border-width:0;padding:5px;'";
-$table_td = " style='font-family:Verdana;font-size: 16px;vertical-align: top;border: 1px solid #999;padding: 5px;background-color: #FFFFFF;'";	
+$table_td = " style='font-family:Verdana;font-size: 16px;vertical-align: top;border: 1px solid #999;padding: 5px;background-color: #FFFFFF;'";
 $table_td_1 = " style='font-family:Verdana;font-size: 16px;vertical-align: top;border: 1px solid #999;padding: 5px;background-color: #003d99;color:#ffffff;'";
 
 $max_laenge = 30;
@@ -101,7 +101,7 @@ if(isset($_POST['submit_insert']))
 	# kontakt_vname
 
 	$kontakt_vnameErr = NULL;
-	if (!preg_match($textmuster,$_POST['kontakt_vname']) OR empty($_POST['kontakt_vname']))		
+	if (!preg_match($textmuster,$_POST['kontakt_vname']) OR empty($_POST['kontakt_vname']))
 	{
 		$error = true;
 		$kontakt_vnameErr = "<font color='#FF0000'>der Vornamen ist zu kurz oder beinhaltet Sonderzeichen</font>";
@@ -133,7 +133,7 @@ if(isset($_POST['submit_insert']))
 	{
 		$error = true;
 		$kontakt_adresseErr = "<font color='#FF0000'>die Adresse ist zu kurz oder beinhaltet Sonderzeichen</font>";
-	}		
+	}
 
 	# kontakt_plz
 
@@ -142,7 +142,7 @@ if(isset($_POST['submit_insert']))
 	{
 		$error = true;
 		$kontakt_plzErr = "<font color='#FF0000'>die Postleitzahl ist zu kurz oder beinhaltet Sonderzeichen</font>";
-	}		
+	}
 
 	# kontakt_ort
 
@@ -160,7 +160,7 @@ if(isset($_POST['submit_insert']))
 	{
 		$error = true;
 		$kontakt_landErr = "<font color='#FF0000'>bitte wählen Sie das Land aus</font>";
-	}	
+	}
 
 	# kontakt_telefon
 
@@ -169,7 +169,7 @@ if(isset($_POST['submit_insert']))
 	{
 		$error = true;
 		$kontakt_telefonErr = "<font color='#FF0000'>die Telefonnummer ist zu kurz oder beinhaltet Sonderzeichen</font>";
-	}	
+	}
 
     # rsvs_mitglied
 
@@ -212,7 +212,7 @@ if(isset($_POST['submit_insert']))
 }
 
 # --------------------------------------------------------------------------------------
-# Sind alle EIngaben korrekt, werden die Daten in die DB eingelesen 
+# Sind alle EIngaben korrekt, werden die Daten in die DB eingelesen
 # --------------------------------------------------------------------------------------
 
 if($error === false)
@@ -284,99 +284,111 @@ if($error === false)
     $max_kontakt_id = $result['max_kontakt_id'];
 
 	# Body zusammenbauen
-    $kontakbestaetigung = html_entity_decode("Kontaktbestätigung ID = ".$max_kontakt_id." - ".$kontakt_anrede." ".$kontakt_vname." ".$kontakt_nname." - ".$tagesdatum, ENT_QUOTES, 'UTF-8');
-	$body =	
-		"
-	<div style=\"width:600px;float:left;\">
+    $kontakbestaetigung = html_entity_decode("Kontaktbestätigung ID = ".$max_kontakt_id." - ".$kontakt_grund." ".$kontakt_anrede." ".$kontakt_vname." ".$kontakt_nname." - ".$tagesdatum, ENT_QUOTES, 'UTF-8');
 
-	<div style=\"padding-top:25px;padding-bottom:25px;width:700px;text-align:center;background-color:#FFFFFF;font-family:Verdana;font-size:16px;color:#003d99;\"> 
-	<br>
-		</div>
-
-	<div style=\"width:600px;float:left;background-color:#FFFFFF;padding:10px;font-family:Verdana;font-size:16px;color:#003d99;\">
-
-		<br><b>".$kontakbestaetigung."</b>
-		<br>
-		<br>Grüezi ".$kontakt_vname." ".$kontakt_nname."<br>
-		<br>Vielen Dank für Ihr E-Mail!
-		<br>Wir melden uns in Kürze wieder bei Ihnen.
-		<br>
-		<br>Freundliche Grüsse
-		<br>Team Lindli Sauna
-		<br>
-		<br>info@lindlisauna.ch
-		<br>www.lindlisauna.ch
-		<br>
-		<br>
-		<img src='".WB_URL."/pages/lindlisauna_logo_klein.png' width='50%'> 
-		<br>
-		<br>
+        $body = "<div style=\"width:600px;float:left;\">
+    
+        <div style=\"padding-top:25px;padding-bottom:25px;width:700px;text-align:center;background-color:#FFFFFF;font-family:Verdana;font-size:16px;color:#003d99;\"> 
+        <br>
+            </div>
+    
+        <div style=\"width:600px;float:left;background-color:#FFFFFF;padding:10px;font-family:Verdana;font-size:16px;color:#003d99;\">
+    
+            <br><b>" . $kontakbestaetigung . "</b>
+            <br>
+            <br>Grüezi " . $kontakt_vname . " " . $kontakt_nname . "<br>";
 
 
-		<table ".$table.">
+    if ($kontakt_grund === "Antrag Mitgliedschaft") {
+        $body .= "<br>Vielen Dank für deine Mitgliedschaft!
+            <br>Ich heisse dich im Namen des Vorstands der Lindlisauna herzlichst willkommen.
+            <br>
+            <br>Im Anhang sende ich dir den Einzahlungsschein des Mitgliederbeitrags.
+            <br>Der Mitglieder Betrag ist CHF 50.00.";
+    } else {
+        $body .= "Vielen Dank für Ihr E-Mail!
+                 <br>
+                 <br>Wir melden uns in Kürze wieder bei Ihnen.";
+    }
 
-		<tr>
-			<td".$table_td_1.">Kontakt-ID</td>
-			<td".$table_td.">".$max_kontakt_id."</td>
-		</tr>
-		
-		<tr>
-			<td".$table_td_1.">Anrede</td>
-			<td".$table_td.">".$kontakt_anrede."</td>
-		</tr>
-        <tr>
-            <td".$table_td_1.">Vorname</td>
-            <td".$table_td.">".$kontakt_vname."</td>
-        </tr>
-        <tr>
-            <td".$table_td_1.">Nachname</td>
-            <td".$table_td.">".$kontakt_nname."</td>
-        </tr>
-        <tr>
-            <td".$table_td_1.">E-Mail</td>
-            <td".$table_td.">".$kontakt_email."</td></tr>
-        <tr>
-            <td".$table_td_1.">Adresse</td>
-            <td".$table_td.">".$kontakt_adresse."</td></tr>
-        <tr>
-            <td".$table_td_1.">PLZ</td>
-            <td".$table_td.">".$kontakt_plz."</td></tr>
-        <tr>
-            <td".$table_td_1.">Ort</td>
-            <td".$table_td.">".$kontakt_ort."</td></tr>
-        <tr>
-            <td".$table_td_1.">Land</td>
-            <td".$table_td.">".$kontakt_land."</td></tr>
-        <tr>
-            <td".$table_td_1.">Telefon</td>
-            <td".$table_td.">".$kontakt_telefon."</td>
-         </tr>
-        <tr>
-            <td".$table_td_1.">Kontaktgrund</td>
-            <td".$table_td.">".$kontakt_grund."</td>
-        </tr>
-        <tr>
-            <td".$table_td_1.">Mitglied RhySauna Verein Schaffhausen?</td>
-            <td".$table_td.">".$rsvs_mitglied."</td>
-        </tr>        
-        <tr>
-            <td".$table_td_1.">IP-Adresse</td>
-            <td".$table_td.">".$ipadresse."</td>
-        </tr>
-			
-		</table>
-
-		<br>
-		<br>
-		<table>
-		<tr>
-            <td ".$table_td_1.">Mitteilung</td>
-            <td ".$table_td.">".nl2br($kontakt_mitteilung)."</td>
-        </tr>
-		</table>
-
-	</div>
-	</div>";	
+            $body.= "<br>
+            <br>
+            <br>Freundliche Grüsse
+            <br>Team Lindlisauna
+            <br>
+            <br>info@lindlisauna.ch
+            <br>www.lindlisauna.ch
+            <br>
+            <br>
+            <img src='" . WB_URL . "/pages/lindlisauna_logo_klein.png' width='75px'> 
+            <br>
+            <br>
+    
+    
+            <table " . $table . ">
+    
+            <tr>
+                <td" . $table_td_1 . ">Kontakt-ID</td>
+                <td" . $table_td . ">" . $max_kontakt_id . "</td>
+            </tr>
+            
+            <tr>
+                <td" . $table_td_1 . ">Anrede</td>
+                <td" . $table_td . ">" . $kontakt_anrede . "</td>
+            </tr>
+            <tr>
+                <td" . $table_td_1 . ">Vorname</td>
+                <td" . $table_td . ">" . $kontakt_vname . "</td>
+            </tr>
+            <tr>
+                <td" . $table_td_1 . ">Nachname</td>
+                <td" . $table_td . ">" . $kontakt_nname . "</td>
+            </tr>
+            <tr>
+                <td" . $table_td_1 . ">E-Mail</td>
+                <td" . $table_td . ">" . $kontakt_email . "</td></tr>
+            <tr>
+                <td" . $table_td_1 . ">Adresse</td>
+                <td" . $table_td . ">" . $kontakt_adresse . "</td></tr>
+            <tr>
+                <td" . $table_td_1 . ">PLZ</td>
+                <td" . $table_td . ">" . $kontakt_plz . "</td></tr>
+            <tr>
+                <td" . $table_td_1 . ">Ort</td>
+                <td" . $table_td . ">" . $kontakt_ort . "</td></tr>
+            <tr>
+                <td" . $table_td_1 . ">Land</td>
+                <td" . $table_td . ">" . $kontakt_land . "</td></tr>
+            <tr>
+                <td" . $table_td_1 . ">Telefon</td>
+                <td" . $table_td . ">" . $kontakt_telefon . "</td>
+             </tr>
+            <tr>
+                <td" . $table_td_1 . ">Kontaktgrund</td>
+                <td" . $table_td . ">" . $kontakt_grund . "</td>
+            </tr>
+            <tr>
+                <td" . $table_td_1 . ">Mitglied RhySauna Verein Schaffhausen?</td>
+                <td" . $table_td . ">" . $rsvs_mitglied . "</td>
+            </tr>        
+            <tr>
+                <td" . $table_td_1 . ">IP-Adresse</td>
+                <td" . $table_td . ">" . $ipadresse . "</td>
+            </tr>
+                
+            </table>
+    
+            <br>
+            <br>
+            <table>
+            <tr>
+                <td " . $table_td_1 . ">Mitteilung</td>
+                <td " . $table_td . ">" . nl2br($kontakt_mitteilung) . "</td>
+            </tr>
+            </table>
+    
+        </div>
+        </div>";
 
 	# Betreff
 	// $betreff       = "Kontaktformular ID = ".$max_kontakt_id." www.lindlisauna.ch";;
@@ -426,11 +438,18 @@ if($error === false)
 	// $mail->Subject = $betreff;
     $mail->Subject = $kontakbestaetigung;
 
+    if ($kontakt_grund === "Antrag Mitgliedschaft") {
+
+        $rechnung = WB_PATH."/media/attachments/rechnung_mitgliedschaft.pdf";
+        $mail->AddAttachment($rechnung); # Rechnung als PDF
+
+
+    }
 	$html = stripslashes($body);
 	$mail->Body = $html;
 	$text = str_replace("<br/>","\n", $html);
 	$text = html_entity_decode(strip_tags($html));
-	# Mehrfache Leerzeichen entfernen	
+	# Mehrfache Leerzeichen entfernen
 	$text = preg_replace('/\s+/', ' ', $text);
 	$mail->AltBody = $text;
 
@@ -439,7 +458,6 @@ if($error === false)
 	echo "<div align='center'><table>
 	<tr><td >".$body."</td><tr/>
 	</table></div>";
-
 }
 else
 {
@@ -520,13 +538,13 @@ else
 	<select name='kontakt_anrede' value='".htmlentities($_POST['kontakt_anrede'])."'";
 
 	if(isset($errorFelder['kontakt_anrede']) OR $kontakt_anredeErr > "")
-	{ 
+	{
 		echo "class='select_error'>";
-	} 
+	}
 	else
 	{
 		echo " >";
-	}	
+	}
 
 	echo "<option value=''>Bitte wählen&nbsp;&nbsp;</option>\n";
 
@@ -549,7 +567,7 @@ else
 	echo $kontakt_anredeErr."</td></tr>";
 
 	echo "<tr><td>&nbsp;</td></tr>";
-	
+
 	# Vornamen - Pflichtfeld ------------------------------------------------------------------------------------
 
 	echo "
@@ -569,7 +587,7 @@ else
 	echo $kontakt_vnameErr."</td></tr>";
 
 	echo "<tr><td>&nbsp;</td></tr>";
-	
+
 	# Nachnamen - Pflichtfeld ------------------------------------------------------------------------------------
 
 	echo "
@@ -606,7 +624,7 @@ else
 		echo " >";
 	}
 	echo $kontakt_emailErr."</td></tr>";
-	
+
 	echo "<tr><td>&nbsp;</td></tr>";
 
 	# Strasse | Hausnummer - Pflichtfeld ------------------------------------------------------------------------------------
@@ -625,7 +643,7 @@ else
 		echo " >";
 	}
 	echo $kontakt_adresseErr."</td></tr>";
-	
+
 	echo "<tr><td>&nbsp;</td></tr>";
 
 	# Postleitzahl - Pflichtfeld ------------------------------------------------------------------------------------
@@ -644,10 +662,10 @@ else
 		echo " >";
 	}
 	echo $kontakt_plzErr."</td></tr>";
-	
+
 	echo "<tr><td>&nbsp;</td></tr>";
 
-	# Ort - Pflichtfeld   ------------------------------------------------------------------------------------                    
+	# Ort - Pflichtfeld   ------------------------------------------------------------------------------------
 
 	echo "
 	<tr>
@@ -663,7 +681,7 @@ else
 		echo " >";
 	}
 	echo $kontakt_ortErr."</td></tr>";
-	
+
 	echo "<tr><td>&nbsp;</td></tr>";
 
 	# Land - Pflichtfeld ------------------------------------------------------------------------------------
@@ -674,9 +692,9 @@ else
 	<br>
 	<select name='kontakt_land' value='".htmlentities($_POST['kontakt_land'])."'";
 	if(isset($errorFelder['kontakt_land']) OR $kontakt_landErr > "")
-	{ 
+	{
 		echo "class='select_error'>";
-	} 
+	}
 	else
 	{
 		echo " >";
@@ -702,7 +720,7 @@ else
 
 	echo "</select>";
 	echo $kontakt_landErr."</td></tr>";
-	
+
 	echo "<tr><td>&nbsp;</td></tr>";
 
 	# Telefon ------------------------------------------------------------------------------------
@@ -719,7 +737,7 @@ else
 	else
 	{
 		echo " >";
-	}	
+	}
 	echo $kontakt_telefonErr."</td></tr>";
 
 	echo "<tr><td>&nbsp;</td></tr>";
@@ -780,10 +798,10 @@ else
 		"</textarea>";
 
 	echo $kontakt_mitteilungErr . "</td></tr>";
-	
+
 
 	echo "<tr><td>&nbsp;</td></tr>";
-	
+
 	# Captcha ----------------------------------------------------------------------------------------
 
 	echo "<tr><td><b>Pr&uuml;fziffer</b> ".$mussfeld."</td></tr>";
@@ -803,16 +821,16 @@ else
 					".$mussfeld." Bitte Ergebnis eintragen
 					<div style='text-align: center;'>
 		<input type='text' name='captcha_code' id='captcha_code' style='text-align: center;width: 100px;'";
-	if(isset($errorFelder['captcha_code']))					
+	if(isset($errorFelder['captcha_code']))
 	{
 		echo "class='bg_error'>\n";
 	}
 	else
 	{
 		echo " >\n";
-	}	
+	}
 
-	echo "</div></td></tr>";	
+	echo "</div></td></tr>";
 
 	# Formular senden -------------------------------------------------------------------------------------
 
@@ -831,5 +849,5 @@ echo "SQL<br><pre>".$sql."</pre>";
 echo "<br>mitteilungErr".$kontakt_mitteilungErr."<br>";
 echo var_dump($_POST);
 */
-Echo "Kontaktgrund = ".$_POST['kontakt_grund'];
+// Echo "Kontaktgrund = ".$_POST['kontakt_grund'];
 
