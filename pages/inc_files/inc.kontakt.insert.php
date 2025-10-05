@@ -320,7 +320,7 @@ if($error === false)
             <br>www.lindlisauna.ch
             <br>
             <br>
-            <img src='" . WB_URL . "/pages/lindlisauna_logo_klein.png' width='75px'> 
+            <img src='" . WB_URL . "/pages/lindlisauna_logo_klein.png' width='75'> 
             <br>
             <br>
     
