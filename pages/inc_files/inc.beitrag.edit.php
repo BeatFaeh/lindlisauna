@@ -51,6 +51,7 @@ if (isset($_POST['submit_edit'])) {
                 k.`kontakt_vname`,
                 k.`kontakt_nname`,
                 k.`kontakt_email`,
+                k.`kontakt_telefon`,
                 m.`jahr`,
                 m.`betrag`,
                 m.`bezahlt`,
@@ -73,6 +74,7 @@ if (isset($_POST['submit_edit'])) {
                     $kontakt_vname        = $field['kontakt_vname'];
                     $kontakt_nname        = $field['kontakt_nname'];
                     $kontakt_email        = $field['kontakt_email'];
+                    $kontakt_telefon      = $field['kontakt_telefon'];
                     $betrag               = $field['betrag'];
                     $jahr                 = $field['jahr'];
                     $bezahlt              = $field['bezahlt'];
@@ -87,6 +89,7 @@ if (isset($_POST['submit_edit'])) {
                     $kontakt_vname        = $field['kontakt_vname'];
                     $kontakt_nname        = $field['kontakt_nname'];
                     $kontakt_email        = $field['kontakt_email'];
+                    $kontakt_telefon      = $field['kontakt_telefon'];
                     $betrag               = $field['betrag'];
                     $jahr                 = $field['jahr'];
                     $bezahlt              = $field['bezahlt'];
@@ -119,6 +122,10 @@ if (isset($_POST['submit_edit'])) {
                     <tr>
                       <th>E-Mail</th>
                       <td>" . out($kontakt_email ?? '') . "</td>
+                    </tr>
+                    <tr>
+                      <th>Telefon</th>
+                      <td>" . out($kontakt_telefon ?? '') . "</td>
                     </tr>
                     <tr>
                       <th>Beitragsjahr</th>
