@@ -56,6 +56,7 @@ if (isset($_POST['submit_edit'])) {
                 m.`betrag`,
                 m.`bezahlt`,
                 m.`datum_bezahlt`,
+                m.`erinnerung`,
                 m.`bemerkung`
                 FROM `tbl_mitgliederbeitrag` m
                 JOIN `tbl_kontakt` k ON k.`kontakt_id` = m.`kontakt_id`
@@ -79,6 +80,7 @@ if (isset($_POST['submit_edit'])) {
                     $jahr                 = $field['jahr'];
                     $bezahlt              = $field['bezahlt'];
                     $datum_bezahlt        = $field['datum_bezahlt'];
+                    $erinnerung           = $field['erinnerung'];
                     $bemerkung            = $field['bemerkung'];
                 }
             } else {
@@ -94,6 +96,7 @@ if (isset($_POST['submit_edit'])) {
                     $jahr                 = $field['jahr'];
                     $bezahlt              = $field['bezahlt'];
                     $datum_bezahlt        = $field['datum_bezahlt'];
+                    $erinnerung           = $field['erinnerung'];
                     $bemerkung            = $field['bemerkung'];
                 }
             }
@@ -159,6 +162,18 @@ if (isset($_POST['submit_edit'])) {
                 echo "<input style='width: 150px;' id='arrival' type='date' name='datum_bezahlt' value='" . out($datum_bezahlt) . "'>";
             }
             echo "    </td>
+    
+            <tr>
+                    <th>Erinnerung</th>
+                    <td>";
+            if (empty($erinnerung)) {
+                echo "<input type='date' id='datepicker' name='erinnerung'>";
+            } else {
+                echo "<input style='width: 150px;' id='arrival' type='date' name='erinnerung' value='" . out($erinnerung) . "'>";
+            }
+            echo "    </td>
+    
+    
                   </tr>
                   <tr>
                     <th>Bemerkung</th>
@@ -189,19 +204,35 @@ if (isset($_POST['submit_edit'])) {
 
     $mysqli->set_charset('utf8mb4');
 
-    $mitgliederbeitrag_id = $_POST['mitgliederbeitrag_id'];
-    $betrag        = $_POST['betrag'];
-    $bezahlt       = $_POST['bezahlt'];
-    $datum_bezahlt = $_POST['datum_bezahlt'];
-    $bemerkung     = $_POST['bemerkung'];
+    $mitgliederbeitrag_id = (int)$_POST['mitgliederbeitrag_id'];
+    $betrag        = $_POST['betrag'] ?? null;
+    $bezahlt       = $_POST['bezahlt'] ?? null;
+    $datum_bezahlt = $_POST['datum_bezahlt'] ?? null;
+    $erinnerung    = $_POST['erinnerung'] ?? null;
+    $bemerkung     = $_POST['bemerkung'] ?? null;
 
+    /* ---------- Datum prüfen ---------- */
+    if (empty($datum_bezahlt)) {
+        $datum = "NULL";
+    } else {
+        $datum = "'" . $mysqli->real_escape_string($datum_bezahlt) . "'";
+    }
+
+    if (empty($erinnerung)) {
+        $erinnerung = "NULL";
+    } else {
+        $erinnerung = "'" . $mysqli->real_escape_string($erinnerung) . "'";
+    }
+
+    /* ---------- Query ---------- */
     $sql = "
     UPDATE `tbl_mitgliederbeitrag` SET
       `betrag`        = '" . $mysqli->real_escape_string($betrag) . "',
       `bezahlt`       = '" . $mysqli->real_escape_string($bezahlt) . "',
-      `datum_bezahlt` = '" . $mysqli->real_escape_string($datum_bezahlt) . "',
+      `datum_bezahlt` =      $datum,
+      `erinnerung`    =      $erinnerung,
       `bemerkung`     = '" . $mysqli->real_escape_string($bemerkung) . "'
-    WHERE `mitgliederbeitrag_id` = " . (int)$mitgliederbeitrag_id . "
+    WHERE `mitgliederbeitrag_id` = $mitgliederbeitrag_id
     ";
 
     $mysqli->query($sql) or die("SQL-Fehler: " . $mysqli->error);
@@ -313,6 +344,7 @@ SELECT
     m.`betrag`,
     m.`bezahlt`,
     m.`datum_bezahlt`,
+    m.`erinnerung`,
     m.`bemerkung`
 FROM `tbl_mitgliederbeitrag` m
 JOIN `tbl_kontakt` k ON k.`kontakt_id` = m.`kontakt_id`
@@ -384,6 +416,7 @@ ORDER BY k.`kontakt_nname`, k.`kontakt_vname`, m.`jahr` DESC
                     <th>Betrag</th>
                     <th>bezahlt</th>
                     <th>Datum</th>
+                    <th>Erinnerung</th>
                     <th>Auswahl</th>
                     <th>edit</th>
                     <th>delete</th>
@@ -403,6 +436,13 @@ ORDER BY k.`kontakt_nname`, k.`kontakt_vname`, m.`jahr` DESC
                 $termin = datumswandler_ger($row['datum_bezahlt']);
             }
 
+            if (empty($row['erinnerung']) || $row['erinnerung'] === '0000-00-00') {
+                $erinnerung = '';
+            } else {
+                /* Annahme: datumswandler_ger liefert UTF-8; sonst out() verwenden [Low certainty] */
+                $erinnerung = datumswandler_ger($row['erinnerung']);
+            }
+
             echo "<tr>
                     <td>" . out($row['mitgliederbeitrag_id']) . "</td>
                     <td>" . out($row['kontakt_id']) . "</td>
@@ -411,6 +451,7 @@ ORDER BY k.`kontakt_nname`, k.`kontakt_vname`, m.`jahr` DESC
                     <td>" . out(number_format((float)$row['betrag'], 2, '.', '\'')) . "</td>
                     <td>" . out($row['bezahlt']) . "</td>
                     <td>" . out($termin) . "</td>
+                     <td>" . out($erinnerung) . "</td>
 
                     <td>
                       <input type='radio' name='submit_auswahl' value='" . out($row['mitgliederbeitrag_id']) . "'>
