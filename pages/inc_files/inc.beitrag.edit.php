@@ -349,8 +349,7 @@ SELECT
 FROM `tbl_mitgliederbeitrag` m
 JOIN `tbl_kontakt` k ON k.`kontakt_id` = m.`kontakt_id`
 {$where_sql}
-ORDER BY k.`kontakt_nname`, k.`kontakt_vname`, m.`jahr` DESC
-";
+ORDER BY k.`kontakt_vname`;";
 
     $result = $mysqli->query($data_sql);
 
