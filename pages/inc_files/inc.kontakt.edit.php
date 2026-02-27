@@ -1,28 +1,75 @@
 <?php
-
 echo "<script src='" . WB_URL . "/include/tablesort/tablesort.js' type='text/javascript'></script>";
 
-// Datenbankverbindung
+// DB Verbindung
 $mysqli = new mysqli(DB_HOST, DB_USERNAME, DB_PASSWORD, DB_NAME);
-$mysqli->set_charset("utf8");
+if ($mysqli->connect_error) {
+    die("DB-Verbindung fehlgeschlagen: " . $mysqli->connect_error);
+}
+$mysqli->set_charset("utf8mb4");
 
 $action  = "<form action='".$_SERVER['PHP_SELF']."' method='POST'>";
 $go_back = "<html><head><meta http-equiv='refresh' content='1; URL=" . WB_URL . "/pages/kontakt/edit.php'></head>";
 
 echo "<div align='center'>";
 
-# EDIT
-if(isset($_POST['submit_edit']))
-{
-    # Datensatz anzeigen
-    if(isset($_POST['submit_auswahl']))
-    {
-        $id = $_POST['submit_auswahl'];
-        $sql = "SELECT * FROM `tbl_kontakt` WHERE `kontakt_id` = '$id'";
-        $query_fields = $database->query($sql);
+/**
+ * PREPARE Helper: liefert mysqli_stmt oder bricht mit Klartext ab
+ */
+function must_prepare(mysqli $db, string $sql): mysqli_stmt {
+    $stmt = $db->prepare($sql);
+    if (!$stmt) {
+        // wichtig: SQL + Error ausgeben, sonst ist Debugging blind
+        die(
+            "<pre style='color:#b00;white-space:pre-wrap;'>".
+            "SQL PREPARE FEHLGESCHLAGEN:\n".$sql."\n\n".
+            "MYSQL ERROR: ".$db->error.
+            "</pre>"
+        );
+    }
+    return $stmt;
+}
 
-        while($field = $query_fields->fetchRow(MYSQLI_ASSOC))
-        {
+/**
+ * LIKE Escape mit ESCAPE '!' (robust, unabhängig von Backslash-Settings)
+ * Regel:
+ *  - '!' selbst doppeln
+ *  - '%' -> '!%'
+ *  - '_' -> '!_'
+ */
+function like_pattern(string $input): string {
+    $s = $input;
+    $s = str_replace('!', '!!', $s);
+    $s = str_replace('%', '!%', $s);
+    $s = str_replace('_', '!_', $s);
+    return "%".$s."%";
+}
+
+/**
+ * NULL helper
+ */
+function null_if_empty($v) {
+    if ($v === '' || $v === null) return null;
+    return $v;
+}
+
+# EDIT
+if (isset($_POST['submit_edit'])) {
+
+    if (isset($_POST['submit_auswahl'])) {
+        $id = (int)$_POST['submit_auswahl'];
+
+        $stmt = must_prepare($mysqli, "SELECT * FROM `tbl_kontakt` WHERE `kontakt_id` = ?");
+        $stmt->bind_param("i", $id);
+        $stmt->execute();
+        $res = $stmt->get_result();
+        $field = $res->fetch_assoc();
+        $stmt->close();
+
+        if (!$field) {
+            echo "<p>Datensatz nicht gefunden.</p>";
+            echo $go_back;
+        } else {
             $kontakt_id         = $field['kontakt_id'];
             $kontakt_eintrag    = $field['kontakt_eintrag'];
             $kontakt_anrede     = $field['kontakt_anrede'];
@@ -41,557 +88,582 @@ if(isset($_POST['submit_edit']))
             $kontakt_termin     = $field['kontakt_termin'];
             $ipadresse          = $field['ipadresse'];
             $rsvs_mitglied      = $field['rsvs_mitglied'];
+
+            echo $action;
+            echo "<table class='sortierbar' id='myTable'>
+                <tr>
+                    <th>Datensatz-ID</th>
+                    <td>".$kontakt_id."</td>
+                    <input type='hidden' name='kontakt_id' value='".$kontakt_id."'>
+                </tr>			
+
+                <tr>
+                    <th>Erfassungsdatum</th>
+                    <td>".datumswandler_ger($kontakt_eintrag)."</td>
+                    <input type='hidden' name='kontakt_eintrag' value='".$kontakt_eintrag."'>
+                </tr>
+
+                <tr>
+                    <th>Anrede</th>
+                    <td>
+                        <select class='form_input' name='kontakt_anrede'>
+                            <option value=''>Bitte wählen&nbsp;&nbsp;</option>";
+
+            $selectedValue = $kontakt_anrede;
+            $options = ["Frau", "Herr"];
+            foreach ($options as $option) {
+                $selected = ($selectedValue === $option) ? " selected" : "";
+                echo "<option value=\"{$option}\"{$selected}>{$option}</option>";
+            }
+
+            echo "      </select>
+                    </td>
+                </tr>
+
+                <tr>
+                    <th>Vornamen</th>
+                    <td><input type='text' name='kontakt_vname' value='".htmlspecialchars($kontakt_vname ?? '', ENT_QUOTES)."'></td>
+                </tr>
+
+                <tr>
+                    <th>Nachnamen</th>
+                    <td><input type='text' name='kontakt_nname' value='".htmlspecialchars($kontakt_nname ?? '', ENT_QUOTES)."'></td>
+                </tr>
+
+                <tr>
+                    <th>E-Mail</th>
+                    <td><input type='text' name='kontakt_email' value='".htmlspecialchars($kontakt_email ?? '', ENT_QUOTES)."'></td>
+                </tr>
+
+                <tr>
+                    <th>Strasse | Hausnummer</th>
+                    <td><input type='text' name='kontakt_adresse' value='".htmlspecialchars($kontakt_adresse ?? '', ENT_QUOTES)."'></td>
+                </tr>
+
+                <tr>
+                    <th>PLZ</th>
+                    <td><input type='text' name='kontakt_plz' value='".htmlspecialchars($kontakt_plz ?? '', ENT_QUOTES)."'></td>
+                </tr>
+
+                <tr>
+                    <th>Ort</th>
+                    <td><input type='text' name='kontakt_ort' value='".htmlspecialchars($kontakt_ort ?? '', ENT_QUOTES)."'></td>
+                </tr>
+
+                <tr><th>Land</th>";
+
+            $selectedValue = $kontakt_land;
+            $myArray = ["Schweiz", "Deutschland", "Österreich", "Italien", "Frankreich", "andere"];
+
+            echo "<td>
+                    <select class='form_input' name='kontakt_land'>
+                        <option value=''>Bitte wählen&nbsp;&nbsp;</option>";
+
+            foreach ($myArray as $element) {
+                $isSelected = ($selectedValue == $element) ? " selected" : "";
+                echo "<option value=\"".htmlentities($element, ENT_QUOTES)."\"$isSelected>".htmlentities($element)."</option>\n";
+            }
+            echo "      </select>
+                  </td>
+                </tr>
+
+                <tr>
+                    <th>Telefon</th>
+                    <td><input type='text' name='kontakt_telefon' value='".htmlspecialchars($kontakt_telefon ?? '', ENT_QUOTES)."'></td>
+                </tr>
+
+                <tr>
+                    <th>Kontaktgrund</th>";
+
+            $selectedValue = $kontakt_grund;
+            $myArray = [
+                "Antrag Mitgliedschaft",
+                "allgemeine Frage",
+                "Anmeldung Newsletter",
+                "Kritik",
+                "Mitarbeit",
+                "Reservation Sauna",
+                "Reservation Massageraum",
+                "Reservation Seminarraum",
+                "Nachfrage zu Preisen / Angeboten",
+                "Sonstiges"
+            ];
+
+            echo "<td>
+                    <select class='form_input' name='kontakt_grund'>
+                        <option value=''>Bitte wählen&nbsp;&nbsp;</option>";
+
+            foreach ($myArray as $element) {
+                $isSelected = ($selectedValue == $element) ? " selected" : "";
+                echo "<option value=\"".htmlentities($element, ENT_QUOTES)."\"$isSelected>".htmlentities($element)."</option>\n";
+            }
+            echo "      </select>
+                  </td>
+                </tr>
+
+                <tr>
+                    <th>Mitglied RhySauna Verein</th>";
+
+            $selectedValue = $rsvs_mitglied;
+            $myArray = ["ja", "nein"];
+
+            echo "<td>
+                    <select class='form_input' name='rsvs_mitglied'>
+                        <option value=''>Bitte wählen&nbsp;&nbsp;</option>";
+
+            foreach ($myArray as $element) {
+                $isSelected = ($selectedValue == $element) ? " selected" : "";
+                echo "<option value=\"".htmlentities($element, ENT_QUOTES)."\"$isSelected>".htmlentities($element)."</option>\n";
+            }
+            echo "      </select>
+                  </td>
+                </tr>
+
+                <tr>
+                    <th>Mitteilung</th>
+                    <td><textarea rows='9' name='kontakt_mitteilung'>".htmlspecialchars($kontakt_mitteilung ?? '', ENT_QUOTES)."</textarea></td>
+                </tr>
+
+                <tr><td colspan='2' style='text-align: center;'>Einträge zur Erinnerung</td></tr>
+
+                <tr>
+                    <th>Bemerkung</th>
+                    <td><textarea rows='9' name='kontakt_bemerkung'>".htmlspecialchars($kontakt_bemerkung ?? '', ENT_QUOTES)."</textarea></td>
+                </tr>
+
+                <tr>
+                    <th>Erinnerung</th>
+                    <td>
+                        <select class='form_input' name='kontakt_erinnerung'>
+                            <option value=''>Bitte wählen&nbsp;&nbsp;</option>";
+
+            $selectedValue = $kontakt_erinnerung;
+            $options = ["ja", "nein"];
+            foreach ($options as $option) {
+                $selected = ($selectedValue === $option) ? " selected" : "";
+                echo "<option value=\"{$option}\"{$selected}>{$option}</option>";
+            }
+
+            echo "      </select>
+                    </td>
+                </tr>
+
+                <tr>
+                    <th>Erinnerung Termin</th>
+                    <td>";
+
+            if (empty($kontakt_termin) || $kontakt_termin === '0000-00-00') {
+                echo "<input style='width: 150px;' id='arrival' type='date' name='kontakt_termin' value=''>";
+            } else {
+                echo "<input style='width: 150px;' id='arrival' type='date' name='kontakt_termin' value='".htmlspecialchars($kontakt_termin, ENT_QUOTES)."'>";
+            }
+
+            echo "      </td>
+                </tr>
+
+                <tr>
+                    <th>IP-Adresse</th>
+                    <td>".htmlspecialchars($ipadresse ?? '', ENT_QUOTES)."</td>
+                </tr>
+
+                <tr>
+                    <td colspan='2' style='text-align: center;'>&nbsp;</td>
+                </tr>
+
+                <tr>
+                    <td colspan='2' style='text-align: center;'>
+                        <input type='submit' name='submit_update' value='UPDATE' class='myButtonGross'>
+                        <br>
+                        <input type='button' onClick=\"parent.location='".WB_URL."/pages/kontakt/edit.php'\" value='zurück zur Übersicht'  class='myButtonGross'>
+                    </td>
+                </tr>
+            </table>
+            </form>
+            <p>&nbsp;</p>";
         }
 
-        echo $action;
-        echo "<table class='sortierbar' id='myTable'>
-	<tr>
-		<th>Datensatz-ID</th>
-		<td>".$kontakt_id."</td>
-		<input type='hidden' name='kontakt_id' value='".$kontakt_id."'>
-	</tr>			
-		
-	<tr>
-		<th>Erfassungsdatum</th>
-		<td>".datumswandler_ger($kontakt_eintrag)."</td>
-		<input type='hidden' name='kontakt_eintrag' value='".$kontakt_eintrag."'>
-	</tr>
-
-	<tr>
-    <th>Anrede</th>
-    <td>
-        <select class='form_input' name='kontakt_anrede'>
-            <option value=''>Bitte wählen&nbsp;&nbsp;</option>";
-
-        $selectedValue = $kontakt_anrede;
-        $options = ["Frau", "Herr"];
-        foreach ($options as $option)
-        {
-            $selected = ($selectedValue === $option) ? " selected" : "";
-            echo "<option value=\"{$option}\"{$selected}>{$option}</option>";
-        }
-
-        echo"</select>
-    </td>
-</tr>
-
-
-	<tr>
-		<th>Vornamen</th>
-		<td><input type='text' name='kontakt_vname' value='".$kontakt_vname."'></td>
-	</tr>
-	
-	<tr>
-		<th>Nachnamen</th>
-		<td><input type='text' name='kontakt_nname' value='".$kontakt_nname."'></td>
-	</tr>
-
-	<tr>
-		<th>E-Mail</th>
-		<td><input type='text' name='kontakt_email' value='".$kontakt_email."'></td>
-	</tr>
-
-	<tr>
-		<th>Strasse | Hausnummer</th>
-		<td><input type='text' name='kontakt_adresse' value='".$kontakt_adresse."'></td>
-	</tr>
-
-	<tr>
-		<th>PLZ</th>
-		<td><input type='text' name='kontakt_plz' value='".$kontakt_plz."'></td>
-	</tr>
-
-	<tr>
-		<th>Ort</th>
-		<td><input type='text' name='kontakt_ort' value='".$kontakt_ort."'></td>
-	</tr>
-
-	<tr><th>Land</th>";
-        $selectedValue = $kontakt_land;
-        $myArray = array(
-            "Schweiz",
-            "Deutschland",
-            "Österreich",
-            "Italien",
-            "Frankreich",
-            "andere"
-        );
-        echo "<td>
-	<select class='form_input' name='kontakt_land' value='".$kontakt_land."'>
-	<option value=''>Bitte wählen&nbsp;&nbsp;</option>";
-
-        foreach($myArray as $element)
-        {
-            $isSelected = ($selectedValue == $element) ? " selected" : "";
-            echo "<option value=\"".htmlentities($element, ENT_QUOTES)."\"$isSelected>".htmlentities($element)."</option>\n";
-        }
-        echo "</select></td></tr>
-
-	<tr>
-		<th>Telefon</th>
-		<td><input type='text' name='kontakt_telefon' value='".$kontakt_telefon."'></td>
-	</tr>
-
-	<tr>
-	<th>Kontaktgrund</th>";
-
-        $selectedValue =$kontakt_grund;
-        $myArray = array(
-            "Antrag Mitgliedschaft",
-            "allgemeine Frage",
-            "Anmeldung Newsletter",
-            "Kritik",
-            "Mitarbeit",
-            "Reservation Sauna",
-            "Reservation Massageraum",
-            "Reservation Seminarraum",
-            "Nachfrage zu Preisen / Angeboten",
-            "Sonstiges"
-        );
-        echo "<td>
-	<select class='form_input' name='kontakt_grund' value='".$kontakt_grund."'>
-	<option value=''>Bitte wählen&nbsp;&nbsp;</option>";
-
-        foreach($myArray as $element)
-        {
-            $isSelected = ($selectedValue == $element) ? " selected" : "";
-            echo "<option value=\"".htmlentities($element, ENT_QUOTES)."\"$isSelected>".htmlentities($element)."</option>\n";
-        }
-        echo "</select></td></tr>
-
-	<tr>
-	<th>Mitglied RhySauna Verein</th>";
-
-        $selectedValue = $rsvs_mitglied;
-        $myArray = array(
-            "ja",
-            "nein"
-        );
-
-        echo "<td>
-	<select class='form_input' name='rsvs_mitglied' value='".$rsvs_mitglied."'>
-	<option value=''>Bitte wählen&nbsp;&nbsp;</option>";
-
-        foreach($myArray as $element)
-        {
-            $isSelected = ($selectedValue == $element) ? " selected" : "";
-            echo "<option value=\"".htmlentities($element, ENT_QUOTES)."\"$isSelected>".htmlentities($element)."</option>\n";
-        }
-        echo "</select></td></tr>
-
-
-	<tr>
-		<th>Mitteilung</th>
-		<td><textarea rows='9' name='kontakt_mitteilung'>".$kontakt_mitteilung."</textarea></td>
-	</tr>
-
-	<tr><td colspan='2' style='text-align: center;'>Einträge zur Erinnerung</td></tr>
-	
-	<tr>
-		<th>Bemerkung</th>
-		<td><textarea rows='9' name='kontakt_bemerkung'>".$kontakt_bemerkung."</textarea></td>
-	</tr>		
-
-<tr>
-    <th>Erinnerung</th>
-    <td>
-        <select class='form_input' name='kontakt_erinnerung'>
-            <option value=''>Bitte wählen&nbsp;&nbsp;</option>";
-
-        $selectedValue = $kontakt_erinnerung;
-        $options = ["ja", "nein"];
-        foreach ($options as $option)
-        {
-            $selected = ($selectedValue === $option) ? " selected" : "";
-            echo "<option value=\"{$option}\"{$selected}>{$option}</option>";
-        }
-
-        echo"</select>
-    </td>
-</tr>
-
-
-	<tr>
-		<th>Erinnerung Termin</th>
-		<td>";
-        if(empty($kontakt_termin))
-        {
-            echo "<input type='date' id='datepicker'  name='kontakt_termin'>";
-        }
-        else
-        {
-            // echo "<input type='text' id='datepicker'  name='kontakt_termin' value='".datumswandler_ger($kontakt_termin)."'>";
-            echo "<input style='width: 150px;' id='arrival' type='date' name='kontakt_termin' value='" .$kontakt_termin. "'>";
-        }
-
-        echo "</td>
-	</tr>		
-
-	<tr>
-		<th>IP-Adresse</th>
-		<td>".$ipadresse."</td>
-	</tr>		
-
-	<tr>
-		<td colspan='2' style='text-align: center;'>&nbsp;</td>
-	</tr>
-	
-	<tr>
-		<td colspan='2' style='text-align: center;'>
-			<input type='submit' name='submit_update' value='UPDATE' class='myButtonGross'>
-			<br>
-		<input type='button' onClick=\"parent.location='".WB_URL."/pages/kontakt/edit.php'\" value='zurück zur Übersicht'  class='myButtonGross'>
-		</td>
-	</tr>
-	</table>
-	</form>
-	<p>&nbsp;</p>";
-
-    }
-    else
-    {
+    } else {
         echo "<p>Bitte w&auml;hlen Sie einen Datensatz mittels Radiobutton aus!";
         echo $go_back;
     }
 }
+
 # UPDATE
-elseif(isset($_POST['submit_update']))
-{
-    $mysqli->set_charset('utf8mb4');
+elseif (isset($_POST['submit_update'])) {
 
-    // Helper
-    $q = fn($v) => ($v === '' || $v === null) ? 'NULL' : "'".$mysqli->real_escape_string($v)."'";
+    $kontakt_id         = (int)($_POST['kontakt_id'] ?? 0);
 
-    $kontakt_id         = (int)$_POST['kontakt_id'];
-    $kontakt_anrede     = $mysqli->real_escape_string($_POST['kontakt_anrede'] ?? '');
-    $kontakt_nname      = $mysqli->real_escape_string($_POST['kontakt_nname'] ?? '');
-    $kontakt_vname      = $mysqli->real_escape_string($_POST['kontakt_vname'] ?? '');
-    $kontakt_email      = $mysqli->real_escape_string($_POST['kontakt_email'] ?? '');
-    $kontakt_adresse    = $mysqli->real_escape_string($_POST['kontakt_adresse'] ?? '');
-    $kontakt_plz        = $mysqli->real_escape_string($_POST['kontakt_plz'] ?? '');
-    $kontakt_ort        = $mysqli->real_escape_string($_POST['kontakt_ort'] ?? '');
-    $kontakt_land       = $mysqli->real_escape_string($_POST['kontakt_land'] ?? '');
-    $kontakt_telefon    = $mysqli->real_escape_string($_POST['kontakt_telefon'] ?? '');
+    $kontakt_anrede     = $_POST['kontakt_anrede'] ?? '';
+    $kontakt_nname      = $_POST['kontakt_nname'] ?? '';
+    $kontakt_vname      = $_POST['kontakt_vname'] ?? '';
+    $kontakt_email      = $_POST['kontakt_email'] ?? '';
+    $kontakt_adresse    = $_POST['kontakt_adresse'] ?? '';
+    $kontakt_plz        = $_POST['kontakt_plz'] ?? '';
+    $kontakt_ort        = $_POST['kontakt_ort'] ?? '';
+    $kontakt_land       = $_POST['kontakt_land'] ?? '';
+    $kontakt_telefon    = $_POST['kontakt_telefon'] ?? '';
 
-    // Felder, die NULL sein dürfen:
-    $kontakt_grund      = $q($_POST['kontakt_grund']      ?? null);
-    $rsvs_mitglied      = $q($_POST['rsvs_mitglied']      ?? null);
-    $kontakt_mitteilung = $q($_POST['kontakt_mitteilung'] ?? null);
-    $kontakt_bemerkung  = $q($_POST['kontakt_bemerkung']  ?? null);
-    $kontakt_erinnerung = $q($_POST['kontakt_erinnerung'] ?? null);
-
-    // Datum korrekt: 'YYYY-MM-DD' oder NULL
-    $kontakt_termin_sql = $q($_POST['kontakt_termin'] ?? null);
+    $kontakt_grund      = null_if_empty($_POST['kontakt_grund'] ?? null);
+    $rsvs_mitglied      = null_if_empty($_POST['rsvs_mitglied'] ?? null);
+    $kontakt_mitteilung = null_if_empty($_POST['kontakt_mitteilung'] ?? null);
+    $kontakt_bemerkung  = null_if_empty($_POST['kontakt_bemerkung'] ?? null);
+    $kontakt_erinnerung = null_if_empty($_POST['kontakt_erinnerung'] ?? null);
+    $kontakt_termin     = null_if_empty($_POST['kontakt_termin'] ?? null);
 
     $sql = "
-    UPDATE `tbl_kontakt` SET
-      `kontakt_anrede`     = '$kontakt_anrede',
-      `kontakt_nname`      = '$kontakt_nname',
-      `kontakt_vname`      = '$kontakt_vname',
-      `kontakt_email`      = '$kontakt_email',
-      `kontakt_adresse`    = '$kontakt_adresse',
-      `kontakt_plz`        = '$kontakt_plz',
-      `kontakt_ort`        = '$kontakt_ort',
-      `kontakt_land`       = '$kontakt_land',
-      `kontakt_telefon`    = '$kontakt_telefon',
-      `kontakt_grund`      = $kontakt_grund,
-      `rsvs_mitglied`      = $rsvs_mitglied,
-      `kontakt_mitteilung` = $kontakt_mitteilung,
-      `kontakt_bemerkung`  = $kontakt_bemerkung,
-      `kontakt_erinnerung` = $kontakt_erinnerung,
-      `kontakt_termin`     = $kontakt_termin_sql
-    WHERE `kontakt_id` = $kontakt_id
+        UPDATE `tbl_kontakt` SET
+          `kontakt_anrede`     = ?,
+          `kontakt_nname`      = ?,
+          `kontakt_vname`      = ?,
+          `kontakt_email`      = ?,
+          `kontakt_adresse`    = ?,
+          `kontakt_plz`        = ?,
+          `kontakt_ort`        = ?,
+          `kontakt_land`       = ?,
+          `kontakt_telefon`    = ?,
+          `kontakt_grund`      = ?,
+          `rsvs_mitglied`      = ?,
+          `kontakt_mitteilung` = ?,
+          `kontakt_bemerkung`  = ?,
+          `kontakt_erinnerung` = ?,
+          `kontakt_termin`     = ?
+        WHERE `kontakt_id` = ?
     ";
 
-    $mysqli->query($sql) or die("SQL-Fehler: ".$mysqli->error);
+    $stmt = must_prepare($mysqli, $sql);
+
+    $stmt->bind_param(
+        "sssssssssssssssi",
+        $kontakt_anrede,
+        $kontakt_nname,
+        $kontakt_vname,
+        $kontakt_email,
+        $kontakt_adresse,
+        $kontakt_plz,
+        $kontakt_ort,
+        $kontakt_land,
+        $kontakt_telefon,
+        $kontakt_grund,
+        $rsvs_mitglied,
+        $kontakt_mitteilung,
+        $kontakt_bemerkung,
+        $kontakt_erinnerung,
+        $kontakt_termin,
+        $kontakt_id
+    );
+
+    if (!$stmt->execute()) {
+        die("SQL-Fehler (UPDATE): " . $stmt->error);
+    }
+    $stmt->close();
 
     echo $action;
 
     echo "<div align='center'>
+        <table id='myTable'>
+            <tr>
+                <td colspan='2' style='text-align: center;'>
+                    Der Datensatz<br><br><b>ID".$kontakt_id."
+                    <br>".htmlspecialchars($kontakt_vname, ENT_QUOTES)." ".htmlspecialchars($kontakt_nname, ENT_QUOTES)."</b>
+                    <br><br>wurde erfolgreich angepasst!<br>
+                </td>
+            </tr>
 
-	<table id='myTable'>
+            <tr>
+                <td style='text-align: center;'>zurück zum Datensatz<br> 
+                    <input type ='submit' name ='submit_edit' value='".$kontakt_id."' class='myButtonKlein'>
+                    <input type ='hidden' name ='submit_auswahl' value='".$kontakt_id."'>
+                    <br>
+                </td>
+            </tr>
 
-	<tr>
-	<td  colspan='2' style='text-align: center;'>Der Datensatz<br><br><b>ID".$kontakt_id."
-	<br>".str_replace("'","",$kontakt_vname)." ".str_replace("'","",$kontakt_nname)."</b>
-	<br><br>wurde erfolgreich angepasst!<br></td>
-	</tr>
-
-	<tr>
-        <td style='text-align: center;'>zurück zum Datensatz<br> 
-            <input type ='submit' name ='submit_edit' value='".$kontakt_id."' class='myButtonKlein'>
-            <input type ='hidden' name ='submit_auswahl' value='".$kontakt_id."'>
-        <br>
-        </td>
-	</tr>
-
-	<tr>
-        <td colspan='2' style='text-align: center;'>
-            <input 
-            type='button' onClick=\"parent.location='".WB_URL."/pages/kontakt/edit.php'\" 
-            value='zurück zur Übersicht' 
-            class='myButtonGross'>
-        </td>
-	</tr>
-	</table>
-	<p>&nbsp;</p>
-	</div>";
+            <tr>
+                <td colspan='2' style='text-align: center;'>
+                    <input type='button' onClick=\"parent.location='".WB_URL."/pages/kontakt/edit.php'\" 
+                           value='zurück zur Übersicht' class='myButtonGross'>
+                </td>
+            </tr>
+        </table>
+        <p>&nbsp;</p>
+    </div>";
 }
-# Delete-Funktion
-elseif (isset($_POST['submit_delete']))
-{
-    if(isset($_POST['submit_auswahl']))
-    {
-        $kontakt_id = intval($_POST['submit_auswahl']);
-        $sql = "DELETE FROM `tbl_kontakt` WHERE `kontakt_id` = '$kontakt_id'";
-        $mysqli->query($sql);
+
+# DELETE
+elseif (isset($_POST['submit_delete'])) {
+
+    if (isset($_POST['submit_auswahl'])) {
+        $kontakt_id = (int)$_POST['submit_auswahl'];
+
+        $stmt = must_prepare($mysqli, "DELETE FROM `tbl_kontakt` WHERE `kontakt_id` = ?");
+        $stmt->bind_param("i", $kontakt_id);
+        $stmt->execute();
+        $stmt->close();
+
         echo $go_back;
-        echo "<div style='color: red; font-weight: bold;'>Der Datensatz $kontakt_id wurde erfolgreich gelöscht.</div>";
-    }
-    else
-    {
+        echo "<div style='color: red; font-weight: bold;'>Der Datensatz ".htmlspecialchars((string)$kontakt_id, ENT_QUOTES)." wurde erfolgreich gelöscht.</div>";
+    } else {
         echo "<p>Bitte w&auml;hlen Sie einen Datensatz mittels Radiobutton aus!";
         echo $go_back;
     }
 }
-else
-{
-    # Filter- & Pagingparameter holen
+
+# LISTE + SUCHE + FILTER + PAGING
+else {
+
     $search = isset($_GET['search']) ? trim($_GET['search']) : '';
-    $limit = isset($_GET['limit']) && $_GET['limit'] !== 'all' ? intval($_GET['limit']) : null;
-    $page = isset($_GET['page']) ? max(1, intval($_GET['page'])) : 1;
+    $limitParam = $_GET['limit'] ?? '25';
+    $limit = ($limitParam !== 'all') ? max(1, (int)$limitParam) : null;
+
+    $page = isset($_GET['page']) ? max(1, (int)$_GET['page']) : 1;
     $offset = ($limit) ? ($page - 1) * $limit : 0;
 
-    // [NEU] ausgewählter kontakt_grund (GET), Default "Alle"
-    $grund = isset($_GET['kontakt_grund']) ? trim($_GET['kontakt_grund']) : 'Alle'; // [NEU]
+    $grund = isset($_GET['kontakt_grund']) ? trim($_GET['kontakt_grund']) : 'Alle';
 
-    // [NEU] Dropdown-Optionen dynamisch aus DB laden
-    $grund_options = []; // [NEU]
-    $opt_sql = "SELECT DISTINCT kontakt_grund 
-                FROM tbl_kontakt 
-                WHERE kontakt_grund IS NOT NULL AND kontakt_grund <> '' 
-                ORDER BY kontakt_grund"; // [NEU]
-    if ($opt_res = $mysqli->query($opt_sql)) { // [NEU]
+    // Dropdown-Optionen dynamisch
+    $grund_options = [];
+    $opt_sql = "SELECT DISTINCT kontakt_grund
+                FROM tbl_kontakt
+                WHERE kontakt_grund IS NOT NULL AND kontakt_grund <> ''
+                ORDER BY kontakt_grund";
+    if ($opt_res = $mysqli->query($opt_sql)) {
         while ($opt_row = $opt_res->fetch_assoc()) {
             $grund_options[] = $opt_row['kontakt_grund'];
         }
         $opt_res->free();
     }
 
-    // SQL für Zählen + Filter
-    $clauses = []; // [NEU]
+    // WHERE dynamisch + Parameter sammeln
+    $where = [];
+    $types = "";
+    $params = [];
 
-    if (!empty($search)) {
-        $escaped = $mysqli->real_escape_string($search);
-        $clauses[] = "( 
-			kontakt_id LIKE '%$escaped%' OR
-			kontakt_anrede LIKE '%$escaped%' OR
-			kontakt_vname LIKE '%$escaped%' OR
-			kontakt_nname LIKE '%$escaped%' OR
-			kontakt_adresse LIKE '%$escaped%' OR
-			kontakt_plz LIKE '%$escaped%' OR
-			kontakt_ort LIKE '%$escaped%' OR
-			kontakt_land LIKE '%$escaped%' OR
-			kontakt_telefon LIKE '%$escaped%' OR
-			kontakt_email LIKE '%$escaped%' OR
-			rsvs_mitglied LIKE '%$escaped%' OR
-			kontakt_bemerkung LIKE '%$escaped%' OR
-			kontakt_mitteilung LIKE '%$escaped%'
+    if ($search !== '') {
+        $like = like_pattern($search);
+
+        // 13 LIKEs, alle mit ESCAPE '!'
+        $where[] = "(
+            CAST(kontakt_id AS CHAR) LIKE ? ESCAPE '!' OR
+            kontakt_anrede LIKE ? ESCAPE '!' OR
+            kontakt_vname LIKE ? ESCAPE '!' OR
+            kontakt_nname LIKE ? ESCAPE '!' OR
+            kontakt_adresse LIKE ? ESCAPE '!' OR
+            kontakt_plz LIKE ? ESCAPE '!' OR
+            kontakt_ort LIKE ? ESCAPE '!' OR
+            kontakt_land LIKE ? ESCAPE '!' OR
+            kontakt_telefon LIKE ? ESCAPE '!' OR
+            kontakt_email LIKE ? ESCAPE '!' OR
+            rsvs_mitglied LIKE ? ESCAPE '!' OR
+            kontakt_bemerkung LIKE ? ESCAPE '!' OR
+            kontakt_mitteilung LIKE ? ESCAPE '!'
         )";
+
+        $types .= str_repeat("s", 13);
+        for ($i = 0; $i < 13; $i++) $params[] = $like;
     }
 
-    // [NEU] Filter für kontakt_grund anwenden (außer "Alle")
     if ($grund !== '' && strcasecmp($grund, 'Alle') !== 0) {
-        $grund_esc = $mysqli->real_escape_string($grund);
-        $clauses[] = "kontakt_grund = '$grund_esc'";
+        $where[] = "kontakt_grund = ?";
+        $types .= "s";
+        $params[] = $grund;
     }
 
-    $filter_sql = '';
-    if (!empty($clauses)) {
-        $filter_sql = ' WHERE ' . implode(' AND ', $clauses);
+    $where_sql = $where ? (" WHERE " . implode(" AND ", $where)) : "";
+
+    // COUNT
+    $count_sql = "SELECT COUNT(*) AS total FROM tbl_kontakt" . $where_sql;
+    $stmt = must_prepare($mysqli, $count_sql);
+
+    if ($types !== "") {
+        $stmt->bind_param($types, ...$params);
     }
 
-    $count_sql = "SELECT COUNT(*) AS total FROM tbl_kontakt" . $filter_sql;
-    $total_result = $mysqli->query($count_sql);
+    $stmt->execute();
+    $total_result = $stmt->get_result();
     $total_row = $total_result->fetch_assoc();
-    $total_entries = $total_row['total'];
-    $total_pages = ($limit) ? ceil($total_entries / $limit) : 1;
+    $total_entries = (int)($total_row['total'] ?? 0);
+    $stmt->close();
 
-    # Hauptabfrage
-    $data_sql = "SELECT * FROM tbl_kontakt";
-    if ($filter_sql) $data_sql .= $filter_sql;
-    $data_sql .= " ORDER BY kontakt_id DESC";
-    if ($limit) $data_sql .= " LIMIT $limit OFFSET $offset";
+    $total_pages = ($limit) ? (int)ceil($total_entries / $limit) : 1;
 
-    $result = $mysqli->query($data_sql);
+    // DATA
+    $data_sql = "SELECT * FROM tbl_kontakt" . $where_sql . " ORDER BY kontakt_id DESC";
+    if ($limit) {
+        $data_sql .= " LIMIT ? OFFSET ?";
+    }
 
-    // [NEU] Zähler für Anzeige
-    $shown  = ($result) ? $result->num_rows : 0; // [NEU]
-    $from   = ($total_entries > 0) ? ( $limit ? ($offset + 1) : 1 ) : 0; // [NEU]
-    $to     = ($limit ? ($offset + $shown) : $shown); // [NEU]
+    $stmt = must_prepare($mysqli, $data_sql);
 
-    # HTML-Ausgabe Start
+    if ($limit) {
+        $types2 = $types . "ii";
+        $params2 = $params;
+        $params2[] = $limit;
+        $params2[] = $offset;
 
+        $stmt->bind_param($types2, ...$params2);
+    } else {
+        if ($types !== "") $stmt->bind_param($types, ...$params);
+    }
+
+    $stmt->execute();
+    $result = $stmt->get_result();
+
+    $shown  = $result ? $result->num_rows : 0;
+    $from   = ($total_entries > 0) ? ( $limit ? ($offset + 1) : 1 ) : 0;
+    $to     = ($limit ? ($offset + $shown) : $shown);
+
+    // HTML
     echo "<!DOCTYPE html>
-	<html lang='de'>
+    <html lang='de'>
+    <head>
+        <meta charset='UTF-8'>
+        <title>Kontaktliste</title>
+        <style>
+            body { font-family: Arial, sans-serif; background: #FFFFFF; }
+            table { width: 100%; border-collapse: collapse; background: white; margin-top: 20px; }
+            th, td { border: 1px solid #ccc; padding: 10px; text-align: left; vertical-align: top; }
+            th { background-color: #c0c0c0; color: white; }
+            .center { text-align: center; }
+            .pagination a { margin: 0 5px; padding: 5px 10px; background: #ddd; color: #333; text-decoration: none; border-radius: 4px; }
+            .pagination a.active { font-weight: bold; background: #475c6a; color: white; }
+            .filter-form { background: white; padding: 15px; border: 1px solid #ccc; border-radius: 10px; }
+            .filter-form input[type=text], .filter-form select { padding: 5px; margin-right: 10px; }
+            .myButtonKlein { padding: 5px 10px; }
+            tbody tr:nth-child(odd) { background-color: #f9f9f9; }
+            tbody tr:nth-child(even) { background-color: #ffffff; }
+        </style>
+    </head>
+    <body>
 
-	<head>
-	<meta charset='UTF-8'>
-	<title>Kontaktliste</title>
-	<style>
-		body { font-family: Arial, sans-serif; background: #FFFFFF; }
-		table { width: 100%; border-collapse: collapse; background: white; margin-top: 20px; }
-		th, td { border: 1px solid #ccc; padding: 10px; text-align: left; vertical-align: top; }
-		th { background-color: #c0c0c0; color: white; }
-		.center { text-align: center; }
-		.pagination a { margin: 0 5px; padding: 5px 10px; background: #ddd; color: #333; text-decoration: none; border-radius: 4px; }
-		.pagination a.active { font-weight: bold; background: #475c6a; color: white; }
-		.filter-form { background: white; padding: 15px; border: 1px solid #ccc; border-radius: 10px; }
-		.filter-form input[type=text], .filter-form select { padding: 5px; margin-right: 10px; }
-		.myButtonKlein { padding: 5px 10px; }
+    <h2>Kontaktliste</h2>
 
-		/* Zebra-Streifen für Tabellenzeilen */
-		tbody tr:nth-child(odd) { background-color: #f9f9f9; }
-		tbody tr:nth-child(even) { background-color: #ffffff; }
-	</style>
-	</head>
-	<body>
+    <form method='GET' class='filter-form'>
+        <label class='myLabel'>Volltextsuche:
+            <input type='text' name='search' value='" . htmlspecialchars($search, ENT_QUOTES) . "'>
+        </label>
+        <label class='myLabel'>Anzahl:
+            <select name='limit'>
+                <option value='25' " . ($limit === 25 ? "selected" : "") . ">25</option>
+                <option value='50' " . ($limit === 50 ? "selected" : "") . ">50</option>
+                <option value='100' " . ($limit === 100 ? "selected" : "") . ">100</option>
+                <option value='all' " . (is_null($limit) ? "selected" : "") . ">Alle</option>
+            </select>
+        </label>
 
-	<h2>Kontaktliste</h2>
-
-	<form method='GET' class='filter-form'>
-		<label class='myLabel'>Volltextsuche:
-			<input type='text' name='search' value='" . htmlspecialchars($search, ENT_QUOTES) . "'>
-		</label>
-		<label class='myLabel'>Anzahl:
-			<select name='limit'>
-				<option value='25' " . ($limit == 25 ? "selected" : "") . ">25</option>
-				<option value='50' " . ($limit == 50 ? "selected" : "") . ">50</option>
-				<option value='100' " . ($limit == 100 ? "selected" : "") . ">100</option>
-				<option value='all' " . (is_null($limit) ? "selected" : "") . ">Alle</option>
-			</select>
-		</label>
-
-        <!-- [NEU] Kombobox für kontakt_grund -->
         <label class='myLabel'>Kontaktgrund:
             <select name='kontakt_grund' onchange='this.form.submit()'>
                 <option value='Alle'".(strcasecmp($grund,'Alle')===0 ? " selected" : "").">Alle</option>";
+
     foreach ($grund_options as $opt) {
         $sel = ($grund === $opt) ? " selected" : "";
         echo "<option value='".htmlspecialchars($opt, ENT_QUOTES)."'$sel>".htmlspecialchars($opt)."</option>";
     }
+
     echo "  </select>
         </label>
-		<input type='submit' value='Anzeige' class='myButtonKlein'>
-	</form>";
 
-    // [NEU] Anzeige der Anzahl Datensätze (keine Layout-Änderung)
+        <input type='submit' value='Anzeige' class='myButtonKlein'>
+    </form>";
+
     echo "<div style='margin:5px 0;color:#555;'>
             Angezeigt: <strong>$shown</strong>"
         . ($limit ? " (Datensätze $from–$to von <strong>$total_entries</strong>)" : " von <strong>$total_entries</strong> gesamt")
         . "</div>";
 
-    if ($result->num_rows > 0)
-    {
+    if ($result && $result->num_rows > 0) {
         echo "<form action='".$_SERVER['PHP_SELF']."' method='POST'>
-		<div class='table-scrollable'>
-		<table class='sortierbar' id='myTableNormal'>
-		<thead>
-			<tr>
-				<th>ID</th>
-				<th>Typ</th>
-				<th>Kontakt</th>
-				<th>Erinnerung</th>
-				<th>Termin</th>
-				<th>Auswahl</th>
-				<th>edit</th>
-				<th>delete</th>
-			</tr>
-		</thead>
-		<tbody>";
+            <div class='table-scrollable'>
+            <table class='sortierbar' id='myTableNormal'>
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Typ</th>
+                        <th>Kontakt</th>
+                        <th>Erinnerung</th>
+                        <th>Termin</th>
+                        <th>Auswahl</th>
+                        <th>edit</th>
+                        <th>delete</th>
+                    </tr>
+                </thead>
+                <tbody>";
 
-        while ($row = $result->fetch_assoc())
-        {
-            if (empty($row['kontakt_termin']))
-            {
-                $termin = NULL;
-            }
-            elseif ($row['kontakt_termin'] === '0000-00-00')
-            {
-                $termin = NULL;
-            }
-            else
-            {
+        while ($row = $result->fetch_assoc()) {
+
+            if (empty($row['kontakt_termin']) || $row['kontakt_termin'] === '0000-00-00') {
+                $termin = '';
+            } else {
                 $termin = datumswandler_ger($row['kontakt_termin']);
             }
 
-            if (empty($row['kontakt_erinnerung']))
-            {
-                $erinnerung = NULL;
-            }
-            else
-            {
-                $erinnerung = $row['kontakt_erinnerung'];
-            }
+            $erinnerung = !empty($row['kontakt_erinnerung']) ? $row['kontakt_erinnerung'] : '';
 
             echo "<tr>
-				<td>{$row['kontakt_id']}</td>
-                <td>{$row['kontakt_grund']}</td>
-				<td>
-					{$row['kontakt_anrede']}<br>
-					{$row['kontakt_vname']} {$row['kontakt_nname']}<br>
-					{$row['kontakt_adresse']}<br>
-					{$row['kontakt_plz']} {$row['kontakt_ort']}<br>
-					{$row['kontakt_land']}<br>
-					{$row['kontakt_telefon']}<br>
-					{$row['kontakt_email']}
-				</td>
-				
-				<td>".($erinnerung ?? '')."</td>
+                <td>".htmlspecialchars($row['kontakt_id'], ENT_QUOTES)."</td>
+                <td>".htmlspecialchars($row['kontakt_grund'] ?? '', ENT_QUOTES)."</td>
+                <td>
+                    ".htmlspecialchars($row['kontakt_anrede'] ?? '', ENT_QUOTES)."<br>
+                    ".htmlspecialchars($row['kontakt_vname'] ?? '', ENT_QUOTES)." ".htmlspecialchars($row['kontakt_nname'] ?? '', ENT_QUOTES)."<br>
+                    ".htmlspecialchars($row['kontakt_adresse'] ?? '', ENT_QUOTES)."<br>
+                    ".htmlspecialchars($row['kontakt_plz'] ?? '', ENT_QUOTES)." ".htmlspecialchars($row['kontakt_ort'] ?? '', ENT_QUOTES)."<br>
+                    ".htmlspecialchars($row['kontakt_land'] ?? '', ENT_QUOTES)."<br>
+                    ".htmlspecialchars($row['kontakt_telefon'] ?? '', ENT_QUOTES)."<br>
+                    ".htmlspecialchars($row['kontakt_email'] ?? '', ENT_QUOTES)."
+                </td>
 
-				<td>".($termin ?? '')."</td>
+                <td>".htmlspecialchars($erinnerung, ENT_QUOTES)."</td>
+                <td>".htmlspecialchars($termin, ENT_QUOTES)."</td>
 
+                <td style='text-align: center;'>
+                    <input type='radio' name='submit_auswahl' value='".htmlspecialchars($row['kontakt_id'], ENT_QUOTES)."'>
+                </td>
 
-				<td style='text-align: center;'>
-					<input type='radio' name='submit_auswahl' value='{$row['kontakt_id']}'>
-				</td>
+                <td style='text-align: center;'>
+                    <input type='submit' name='submit_edit' value='edit' class='myButtonKlein'>
+                </td> 
 
-				<td style='text-align: center;'>
-					<input type='submit' name='submit_edit' value='edit' class='myButtonKlein'>
-				</td> 
-
-				<td class='center'>
-					<input type='submit' name='submit_delete' value='löschen' class='myButtonKlein'
-					onclick=\"return confirm('Wirklich löschen: Datensatz {$row['kontakt_id']}?')\">
-				</td>
-			</tr>";
+                <td class='center'>
+                    <input type='submit' name='submit_delete' value='löschen' class='myButtonKlein'
+                    onclick=\"return confirm('Wirklich löschen: Datensatz ".htmlspecialchars($row['kontakt_id'], ENT_QUOTES)."?')\">
+                </td>
+            </tr>";
         }
 
         echo "</tbody>
-		</table>
-		</form>
-		</div>";
+            </table>
+            </div>
+            </form>";
     } else {
         echo "<p>Keine Datensätze gefunden.</p>";
     }
 
-    # PAGINATION
+    // PAGINATION
     if ($limit) {
         echo "<div class='pagination center'>";
+
+        $qsBase = "&limit=" . urlencode((string)$limitParam)
+            . "&search=" . urlencode($search)
+            . "&kontakt_grund=" . urlencode($grund);
+
         if ($page > 1) {
-            echo "<a href='?page=" . ($page - 1) . "&limit=$limit&search=" . urlencode($search) . "&kontakt_grund=" . urlencode($grund) . "'>&laquo; Zurück</a>";
+            echo "<a href='?page=" . ($page - 1) . $qsBase . "'>&laquo; Zurück</a>";
         }
+
         for ($i = 1; $i <= $total_pages; $i++) {
             $active = ($i == $page) ? "active" : "";
-            echo "<a class='$active' href='?page=$i&limit=$limit&search=" . urlencode($search) . "&kontakt_grund=" . urlencode($grund) . "'>$i</a>";
+            echo "<a class='$active' href='?page=$i$qsBase'>$i</a>";
         }
+
         if ($page < $total_pages) {
-            echo "<a href='?page=" . ($page + 1) . "&limit=$limit&search=" . urlencode($search) . "&kontakt_grund=" . urlencode($grund) . "'>Weiter &raquo;</a>";
+            echo "<a href='?page=" . ($page + 1) . $qsBase . "'>Weiter &raquo;</a>";
         }
+
         echo "</div>";
     }
 
     echo "<p>&nbsp;</p></body></html>";
+
+    $stmt->close();
 }
+
 echo "</div>";
 ?>
