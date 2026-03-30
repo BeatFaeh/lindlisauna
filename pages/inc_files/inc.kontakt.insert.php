@@ -4,9 +4,16 @@ header('Content-Type: text/html; charset=UTF-8');
 
 $mysqli = new mysqli(DB_HOST, DB_USERNAME, DB_PASSWORD, DB_NAME);
 // $mysqli->set_charset("utf8");
-$mysqli->set_charset('utf8mb4'); // <— wichtig
-// optional zusätzlich:
+$mysqli->set_charset('utf8mb4');
 $mysqli->query("SET NAMES utf8mb4 COLLATE utf8mb4_unicode_ci");
+
+# --------------------------------------------------------------------------------------
+# Hilfsfunktion für sichere HTML-Ausgabe
+# --------------------------------------------------------------------------------------
+function h($value)
+{
+    return htmlspecialchars((string)$value, ENT_QUOTES, 'UTF-8');
+}
 
 # --------------------------------------------------------------------------------------
 # Deklaration der Variablen
@@ -14,7 +21,7 @@ $mysqli->query("SET NAMES utf8mb4 COLLATE utf8mb4_unicode_ci");
 
 $bg_rubrik = "style='background-color:#5293bf; line-height: 110%; padding: 5px; color:#FFFFFF; width=110%;'";
 $txt_right = "style='text-align: right;'";
-$action = "<form action='" .htmlspecialchars($_SERVER['PHP_SELF'])."' method='POST'>\n";
+$action = "<form action='" . h($_SERVER['PHP_SELF'] ?? '') . "' method='POST'>\n";
 $email_font = "<font color='#333' face='Verdana,Geneva,Arial' size='2'>";
 $mussfeld = "<font color='#FF0000'>(&#8727;)</font>";
 
@@ -26,267 +33,244 @@ $max_laenge = 30;
 $zeichen_suchen   = "[at]";
 $zeichen_ersetzen = "@";
 
-$tagesdatum     = date("d.m.Y");
+$tagesdatum = date("d.m.Y");
 
 # --------------------------------------------------------------------------------------
-# Gueltige Eingabe pruefen
+# POST-Werte initialisieren
 # --------------------------------------------------------------------------------------
 
-/*
-Regex
+$kontakt_grund      = trim($_POST['kontakt_grund'] ?? '');
+$kontakt_anrede     = trim($_POST['kontakt_anrede'] ?? '');
+$kontakt_vname      = trim($_POST['kontakt_vname'] ?? '');
+$kontakt_nname      = trim($_POST['kontakt_nname'] ?? '');
+$kontakt_email_post = trim($_POST['kontakt_email'] ?? '');
+$kontakt_adresse    = trim($_POST['kontakt_adresse'] ?? '');
+$kontakt_plz        = trim($_POST['kontakt_plz'] ?? '');
+$kontakt_ort        = trim($_POST['kontakt_ort'] ?? '');
+$kontakt_land       = trim($_POST['kontakt_land'] ?? '');
+$kontakt_telefon    = trim($_POST['kontakt_telefon'] ?? '');
+$rsvs_mitglied      = trim($_POST['rsvs_mitglied'] ?? '');
+$kontakt_mitteilung = trim($_POST['kontakt_mitteilung'] ?? '');
+$captcha_code       = trim($_POST['captcha_code'] ?? '');
 
-https://www.php-einfach.de/experte/php-sicherheit/daten-validieren/
-https://www.php-einfach.de/php-tutorial/regulaere-ausdruecke/
-
-https://www.php-einfach.de/experte/php-sicherheit/daten-validieren/
-https://www.php-einfach.de/php-tutorial/regulaere-ausdruecke/
-*/
+# --------------------------------------------------------------------------------------
+# Gültige Eingabe prüfen
+# --------------------------------------------------------------------------------------
 
 $zahlenmuster    = "/^['0-9 ]*$/";
-$textmuster     = "/^['-.äöüÄÖÜéèêa-zA-Z ]*$/";
-$textzahlmuster = "/^['-.äöüÄÖÜéèêa-zA-Z0-9 ]*$/";
+$textmuster      = "/^['-.äöüÄÖÜéèêa-zA-Z ]*$/";
+$textzahlmuster  = "/^['-.äöüÄÖÜéèêa-zA-Z0-9 ]*$/";
 
 # --------------------------------------------------------------------------------------
-# Leere Eingabe pruefen
+# Fehler- und Statusvariablen initialisieren
 # --------------------------------------------------------------------------------------
 
 $errorFelder = array();
 $error = null;
 $felder = array("captcha_code");
 
+$captachcheck = '';
+
+$kontakt_grundErr = '';
+$kontakt_anredeErr = '';
+$kontakt_vnameErr = '';
+$kontakt_nnameErr = '';
+$kontakt_emailErr = '';
+$kontakt_adresseErr = '';
+$kontakt_plzErr = '';
+$kontakt_ortErr = '';
+$kontakt_landErr = '';
+$kontakt_telefonErr = '';
+$rsvs_mitglieddErr = '';
+$kontakt_mitteilungErr = '';
+
 echo "<div style='text-align: center;'>";
 
+if (isset($_POST['submit_insert'])) {
+    # --------------------------------------------------------------------------------------
+    # Leere Eingabe prüfen
+    # --------------------------------------------------------------------------------------
 
-if(isset($_POST['submit_insert']))
-{
-	# --------------------------------------------------------------------------------------
-	# Leere Eingabe pruefen
-	# --------------------------------------------------------------------------------------
+    $error = false;
 
-	$error = false;
-
-	foreach($felder as $feld)
-	{
-		if(empty($_POST[$feld]))
-		{
-			$error = true;
-			$errorFelder[$feld] = true;
-		}
-	}
-
-	# Captcha pruefen
-
-	if(empty($_SESSION['captcha_code'] ) || strcasecmp($_SESSION['captcha_code'], $_POST['captcha_code']) != 0)
-	{
-		$captachcheck = "<br><font color='#FF0000'>der Captacha Code stimmt nicht</font>";
-	}
-
-    # kontakt_grund
-
-    $kontakt_grundErr = NULL;
-    if(strlen($_POST['kontakt_grund']) == 0)
-    {
-        $error = true;
-        $kontakt_grundErr = "<font color='#FF0000'>bitte geben Sie einen Grund an</font>";
-    }
-    # kontakt_anrede
-
-	$kontakt_anredeErr = NULL;
-	if(strlen($_POST['kontakt_anrede']) == 0)
-	{
-		$error = true;
-		$kontakt_anredeErr = "<font color='#FF0000'>bitte bestimmen Sie die Anrede</font>";
-	}
-
-	# kontakt_vname
-
-	$kontakt_vnameErr = NULL;
-	if (!preg_match($textmuster,$_POST['kontakt_vname']) OR empty($_POST['kontakt_vname']))
-	{
-		$error = true;
-		$kontakt_vnameErr = "<font color='#FF0000'>der Vornamen ist zu kurz oder beinhaltet Sonderzeichen</font>";
-	}
-
-	# kontakt_nname
-
-	$kontakt_nnameErr = NULL;
-	if (!preg_match($textmuster,$_POST['kontakt_nname']) OR strlen($_POST['kontakt_nname']) < 2)
-	{
-		$error = true;
-		$kontakt_nnameErr = "<font color='#FF0000'>der Nachnamen ist zu kurz oder beinhaltet Sonderzeichen</font>";
-	}
-
-	# kontakt_email
-
-	$kontakt_email = str_replace($zeichen_suchen,$zeichen_ersetzen,$_POST['kontakt_email']);
-	$kontakt_emailErr = NULL;
-	if(empty($kontakt_email) OR !filter_var($kontakt_email, FILTER_VALIDATE_EMAIL))
-	{
-		$error = true;
-		$kontakt_emailErr = "<font color='#FF0000'>bitte die E-Mail Adresse korrekt eingeben</font>";
-	}
-
-	# kontakt_adresse
-
-	$kontakt_adresseErr = NULL;
-	if (!preg_match($textzahlmuster,$_POST['kontakt_adresse']) OR empty($_POST['kontakt_adresse']))
-	{
-		$error = true;
-		$kontakt_adresseErr = "<font color='#FF0000'>die Adresse ist zu kurz oder beinhaltet Sonderzeichen</font>";
-	}
-
-	# kontakt_plz
-
-	$kontakt_plzErr = NULL;
-	if (!preg_match($zahlenmuster,$_POST['kontakt_plz']) OR empty($_POST['kontakt_plz']))
-	{
-		$error = true;
-		$kontakt_plzErr = "<font color='#FF0000'>die Postleitzahl ist zu kurz oder beinhaltet Sonderzeichen</font>";
-	}
-
-	# kontakt_ort
-
-	$kontakt_ortErr = NULL;
-	if (!preg_match($textmuster,$_POST['kontakt_ort']) OR empty($_POST['kontakt_ort']))
-	{
-		$error = true;
-		$kontakt_ortErr = "<font color='#FF0000'>der Ort ist zu kurz oder beinhaltet Sonderzeichen</font>";
-	}
-
-	# kontakt_land
-
-	$kontakt_landErr = NULL;
-	if(strlen($_POST['kontakt_land']) == 0)
-	{
-		$error = true;
-		$kontakt_landErr = "<font color='#FF0000'>bitte wählen Sie das Land aus</font>";
-	}
-
-	# kontakt_telefon
-
-	$kontakt_telefonErr = NULL;
-	if (!preg_match("/^\+?([0-9\/ -]+)$/",$_POST['kontakt_telefon']) OR empty($_POST['kontakt_telefon']))
-	{
-		$error = true;
-		$kontakt_telefonErr = "<font color='#FF0000'>die Telefonnummer ist zu kurz oder beinhaltet Sonderzeichen</font>";
-	}
-
-    # rsvs_mitglied
-
-    $rsvs_mitglieddErr = NULL;
-    if(strlen($_POST['rsvs_mitglied']) == 0)
-    {
-        $error = true;
-        $rsvs_mitglieddErr = "<font color='#FF0000'>bitte die Frage beantworten</font>";
-    }
-
-
-    # kontakt_mitteilung
-
-    if($_POST['kontakt_grund'] != 'Antrag Mitgliedschaft' && $_POST['kontakt_grund'] != 'Anmeldung Newsletter')
-    {
-
-        $kontakt_mitteilungErr = NULL;
-        if (empty($_POST['kontakt_mitteilung'])) {
+    foreach ($felder as $feld) {
+        if (empty($_POST[$feld] ?? '')) {
             $error = true;
-            $kontakt_mitteilungErr = "<font color='#FF0000'>bitte Ihre Mitteilung eintragen</font>";
-        } elseif (preg_match("/\b(?:(?:https?|ftp):\/\/|www\.)[-a-z0-9+&@#\/%?=~_|!:,.;]*[-a-z0-9+&@#\/%=~_|]/i", $_POST['kontakt_mitteilung'])) {
-            $error = true;
-            $kontakt_mitteilungErr = "<font color='#FF0000'>bei der Mitteilung bitte keine Internetadresse eintragen</font>";
+            $errorFelder[$feld] = true;
         }
     }
-/*
-     if($_POST['kontakt_grund'] != 'Anmeldung Newsletter')
-     {
 
-            $kontakt_mitteilungErr = NULL;
-            if (empty($_POST['kontakt_mitteilung'])) {
-                $error = true;
-                $kontakt_mitteilungErr = "<font color='#FF0000'>bitte Ihre Mitteilung eintragen</font>";
-            } elseif (preg_match("/\b(?:(?:https?|ftp):\/\/|www\.)[-a-z0-9+&@#\/%?=~_|!:,.;]*[-a-z0-9+&@#\/%=~_|]/i", $_POST['kontakt_mitteilung'])) {
-                $error = true;
-                $kontakt_mitteilungErr = "<font color='#FF0000'>bei der Mitteilung bitte keine Internetadresse eintragen</font>";
-            }
-     }
-*/
+    # Captcha prüfen
+    # NICHT angepasst, nur vorhandene Variablen werden weiterverwendet
+    if (empty($_SESSION['captcha_code']) || strcasecmp($_SESSION['captcha_code'], $_POST['captcha_code']) != 0) {
+        $captachcheck = "<br><font color='#FF0000'>der Captacha Code stimmt nicht</font>";
+    }
+
+    # kontakt_grund
+    if (strlen($kontakt_grund) == 0) {
+        $error = true;
+        $kontakt_grundErr = "<font color='#FF0000'>bitte geben Sie einen Grund an</font>";
+        $errorFelder['kontakt_grund'] = true;
+    }
+
+    # kontakt_anrede
+    if (strlen($kontakt_anrede) == 0) {
+        $error = true;
+        $kontakt_anredeErr = "<font color='#FF0000'>bitte bestimmen Sie die Anrede</font>";
+        $errorFelder['kontakt_anrede'] = true;
+    }
+
+    # kontakt_vname
+    if (!preg_match($textmuster, $kontakt_vname) || empty($kontakt_vname)) {
+        $error = true;
+        $kontakt_vnameErr = "<font color='#FF0000'>der Vornamen ist zu kurz oder beinhaltet Sonderzeichen</font>";
+        $errorFelder['kontakt_vname'] = true;
+    }
+
+    # kontakt_nname
+    if (!preg_match($textmuster, $kontakt_nname) || strlen($kontakt_nname) < 2) {
+        $error = true;
+        $kontakt_nnameErr = "<font color='#FF0000'>der Nachnamen ist zu kurz oder beinhaltet Sonderzeichen</font>";
+        $errorFelder['kontakt_nname'] = true;
+    }
+
+    # kontakt_email
+    $kontakt_email = str_replace($zeichen_suchen, $zeichen_ersetzen, $kontakt_email_post);
+    if (empty($kontakt_email) || !filter_var($kontakt_email, FILTER_VALIDATE_EMAIL)) {
+        $error = true;
+        $kontakt_emailErr = "<font color='#FF0000'>bitte die E-Mail Adresse korrekt eingeben</font>";
+        $errorFelder['kontakt_email'] = true;
+    }
+
+    # kontakt_adresse
+    if (!preg_match($textzahlmuster, $kontakt_adresse) || empty($kontakt_adresse)) {
+        $error = true;
+        $kontakt_adresseErr = "<font color='#FF0000'>die Adresse ist zu kurz oder beinhaltet Sonderzeichen</font>";
+        $errorFelder['kontakt_adresse'] = true;
+    }
+
+    # kontakt_plz
+    if (!preg_match($zahlenmuster, $kontakt_plz) || empty($kontakt_plz)) {
+        $error = true;
+        $kontakt_plzErr = "<font color='#FF0000'>die Postleitzahl ist zu kurz oder beinhaltet Sonderzeichen</font>";
+        $errorFelder['kontakt_plz'] = true;
+    }
+
+    # kontakt_ort
+    if (!preg_match($textmuster, $kontakt_ort) || empty($kontakt_ort)) {
+        $error = true;
+        $kontakt_ortErr = "<font color='#FF0000'>der Ort ist zu kurz oder beinhaltet Sonderzeichen</font>";
+        $errorFelder['kontakt_ort'] = true;
+    }
+
+    # kontakt_land
+    if (strlen($kontakt_land) == 0) {
+        $error = true;
+        $kontakt_landErr = "<font color='#FF0000'>bitte wählen Sie das Land aus</font>";
+        $errorFelder['kontakt_land'] = true;
+    }
+
+    # kontakt_telefon
+    if (!preg_match("/^\+?([0-9\/ -]+)$/", $kontakt_telefon) || empty($kontakt_telefon)) {
+        $error = true;
+        $kontakt_telefonErr = "<font color='#FF0000'>die Telefonnummer ist zu kurz oder beinhaltet Sonderzeichen</font>";
+        $errorFelder['kontakt_telefon'] = true;
+    }
+
+    # rsvs_mitglied
+    if (strlen($rsvs_mitglied) == 0) {
+        $error = true;
+        $rsvs_mitglieddErr = "<font color='#FF0000'>bitte die Frage beantworten</font>";
+        $errorFelder['rsvs_mitglied'] = true;
+    }
+
+    # kontakt_mitteilung
+    if ($kontakt_grund != 'Antrag Mitgliedschaft' && $kontakt_grund != 'Anmeldung Newsletter') {
+        if (empty($kontakt_mitteilung)) {
+            $error = true;
+            $kontakt_mitteilungErr = "<font color='#FF0000'>bitte Ihre Mitteilung eintragen</font>";
+            $errorFelder['kontakt_mitteilung'] = true;
+        } elseif (preg_match("/\b(?:(?:https?|ftp):\/\/|www\.)[-a-z0-9+&@#\/%?=~_|!:,.;]*[-a-z0-9+&@#\/%=~_|]/i", $kontakt_mitteilung)) {
+            $error = true;
+            $kontakt_mitteilungErr = "<font color='#FF0000'>bei der Mitteilung bitte keine Internetadresse eintragen</font>";
+            $errorFelder['kontakt_mitteilung'] = true;
+        }
+    }
 }
 
 # --------------------------------------------------------------------------------------
-# Sind alle EIngaben korrekt, werden die Daten in die DB eingelesen
+# Sind alle Eingaben korrekt, werden die Daten in die DB eingelesen
 # --------------------------------------------------------------------------------------
 
-if($error === false)
-{
+if ($error === false) {
+    $ipadresse = $_SERVER['REMOTE_ADDR'] ?? '';
 
-	$ipadresse = $_SERVER['REMOTE_ADDR'];
+    $kontakt_anrede_db     = $kontakt_anrede;
+    $kontakt_vname_db      = htmlentities($kontakt_vname, ENT_QUOTES, 'UTF-8');
+    $kontakt_nname_db      = htmlentities($kontakt_nname, ENT_QUOTES, 'UTF-8');
+    $kontakt_email_db      = $kontakt_email_post;
+    $kontakt_adresse_db    = htmlentities($kontakt_adresse, ENT_QUOTES, 'UTF-8');
+    $kontakt_plz_db        = $kontakt_plz;
+    $kontakt_ort_db        = htmlentities($kontakt_ort, ENT_QUOTES, 'UTF-8');
+    $kontakt_land_db       = $kontakt_land;
+    $kontakt_telefon_db    = $kontakt_telefon;
+    $kontakt_grund_db      = htmlentities($kontakt_grund, ENT_QUOTES, 'UTF-8');
+    $rsvs_mitglied_db      = htmlentities($rsvs_mitglied, ENT_QUOTES, 'UTF-8');
+    $kontakt_mitteilung_db = htmlentities($kontakt_mitteilung, ENT_QUOTES, 'UTF-8');
 
-	$kontakt_anrede     = $_POST['kontakt_anrede'];
-	$kontakt_vname      = htmlentities($_POST['kontakt_vname'], ENT_QUOTES, 'UTF-8');
-	$kontakt_nname      = htmlentities($_POST['kontakt_nname'], ENT_QUOTES, 'UTF-8');
-	$kontakt_email      = $_POST['kontakt_email'];
-	$kontakt_adresse    = htmlentities($_POST['kontakt_adresse'], ENT_QUOTES, 'UTF-8');
-	$kontakt_plz        = $_POST['kontakt_plz'];
-	$kontakt_ort        = htmlentities($_POST['kontakt_ort'], ENT_QUOTES, 'UTF-8');
-	$kontakt_land       = $_POST['kontakt_land'];
-	$kontakt_telefon    = $_POST['kontakt_telefon'];
-	$kontakt_grund      = htmlentities(trim($_POST['kontakt_grund']), ENT_QUOTES, 'UTF-8');
+    $kontakt_email_db = str_replace($zeichen_suchen, $zeichen_ersetzen, $kontakt_email_db);
+    $empfaenger = str_replace($zeichen_suchen, $zeichen_ersetzen, $kontakt_email_db);
 
-    $rsvs_mitglied      = htmlentities(trim($_POST['rsvs_mitglied']), ENT_QUOTES, 'UTF-8');
+    $datum_eintrag = date("Y-m-d");
 
-	$kontakt_mitteilung = htmlentities($_POST['kontakt_mitteilung'], ENT_QUOTES, 'UTF-8');
+    $sql = "INSERT INTO `tbl_kontakt`
+    (
+    `kontakt_id`,
+    `kontakt_eintrag`,
+    `kontakt_anrede`,
+    `kontakt_nname`,
+    `kontakt_vname`,
+    `kontakt_email`,
+    `kontakt_adresse`,
+    `kontakt_plz`,
+    `kontakt_ort`,
+    `kontakt_land`,
+    `kontakt_telefon`,
+    `kontakt_grund`,
+    `rsvs_mitglied`,
+    `kontakt_mitteilung`,
+    `ipadresse`
+    )
+    VALUES
+    (
+    NULL,
+    '$datum_eintrag',
+    '$kontakt_anrede_db',
+    '$kontakt_nname_db',
+    '$kontakt_vname_db',
+    '$kontakt_email_db',
+    '$kontakt_adresse_db',
+    '$kontakt_plz_db',
+    '$kontakt_ort_db',
+    '$kontakt_land_db',
+    '$kontakt_telefon_db',
+    '$kontakt_grund_db',
+    '$rsvs_mitglied_db',
+    '$kontakt_mitteilung_db',
+    '$ipadresse'
+    )";
+    $mysqli->query($sql);
 
-	$empfaenger = str_replace($zeichen_suchen,$zeichen_ersetzen,$kontakt_email);
+    $max_kontakt_id = $mysqli->insert_id;
 
-	# die Daten in die Tabelle tbl_kontakt eintragen
+    # Body zusammenbauen
+    $kontakbestaetigung = html_entity_decode(
+        "Kontaktbestätigung ID = " . $max_kontakt_id . " - " . $kontakt_grund_db . " " . $kontakt_anrede_db . " " . $kontakt_vname_db . " " . $kontakt_nname_db . " - " . $tagesdatum,
+        ENT_QUOTES,
+        'UTF-8'
+    );
 
-	$datum_eintrag = date("Y-m-d");
-
-	$sql = "INSERT INTO `tbl_kontakt`
-	(	
-	`kontakt_id`,
-	`kontakt_eintrag`,
-	`kontakt_anrede`,
-	`kontakt_nname`,
-	`kontakt_vname`,
-	`kontakt_email`,
-	`kontakt_adresse`,
-	`kontakt_plz`,
-	`kontakt_ort`,
-	`kontakt_land`,
-	`kontakt_telefon`,
-	`kontakt_grund`,
-	`rsvs_mitglied`, 
-	`kontakt_mitteilung`,
-	`ipadresse`
-	)
-	VALUES
-	(
-	NULL,
-	'$datum_eintrag',
-	'$kontakt_anrede',
-	'$kontakt_nname',
-	'$kontakt_vname',
-	'$kontakt_email',
-	'$kontakt_adresse',
-	'$kontakt_plz',
-	'$kontakt_ort',
-	'$kontakt_land',
-	'$kontakt_telefon',
-	'$kontakt_grund',
-	'$rsvs_mitglied', 
-	'$kontakt_mitteilung',
-	'$ipadresse'
-	)";
-	$mysqli->query($sql);
-
-    $sql = "SELECT MAX(kontakt_id) AS max_kontakt_id FROM `tbl_kontakt`;";
-    $result = $database->query($sql)->fetchArray();
-    $max_kontakt_id = $result['max_kontakt_id'];
-
-	# Body zusammenbauen
-    $kontakbestaetigung = html_entity_decode("Kontaktbestätigung ID = ".$max_kontakt_id." - ".$kontakt_grund." ".$kontakt_anrede." ".$kontakt_vname." ".$kontakt_nname." - ".$tagesdatum, ENT_QUOTES, 'UTF-8');
-
-        $body = "<div style=\"width:600px;float:left;\">
+    $body = "<div style=\"width:600px;float:left;\">
     
         <div style=\"padding-top:25px;padding-bottom:25px;width:700px;text-align:center;background-color:#FFFFFF;font-family:Verdana;font-size:16px;color:#003d99;\"> 
         <br>
@@ -296,8 +280,7 @@ if($error === false)
     
             <br><b>" . $kontakbestaetigung . "</b>
             <br>
-            <br>Grüezi " . $kontakt_vname . " " . $kontakt_nname . "<br>";
-
+            <br>Grüezi " . $kontakt_vname_db . " " . $kontakt_nname_db . "<br>";
 
     if ($kontakt_grund === "Antrag Mitgliedschaft") {
         $body .= "<br>Vielen Dank für deine Mitgliedschaft!
@@ -311,7 +294,7 @@ if($error === false)
                  <br>Wir melden uns in Kürze wieder bei Ihnen.";
     }
 
-            $body.= "<br>
+    $body .= "<br>
             <br>
             <br>Freundliche Grüsse
             <br>Team Lindlisauna
@@ -324,7 +307,6 @@ if($error === false)
             <br>
             <br>
     
-    
             <table " . $table . ">
     
             <tr>
@@ -334,46 +316,46 @@ if($error === false)
             
             <tr>
                 <td" . $table_td_1 . ">Anrede</td>
-                <td" . $table_td . ">" . $kontakt_anrede . "</td>
+                <td" . $table_td . ">" . h($kontakt_anrede_db) . "</td>
             </tr>
             <tr>
                 <td" . $table_td_1 . ">Vorname</td>
-                <td" . $table_td . ">" . $kontakt_vname . "</td>
+                <td" . $table_td . ">" . $kontakt_vname_db . "</td>
             </tr>
             <tr>
                 <td" . $table_td_1 . ">Nachname</td>
-                <td" . $table_td . ">" . $kontakt_nname . "</td>
+                <td" . $table_td . ">" . $kontakt_nname_db . "</td>
             </tr>
             <tr>
                 <td" . $table_td_1 . ">E-Mail</td>
-                <td" . $table_td . ">" . $kontakt_email . "</td></tr>
+                <td" . $table_td . ">" . h($kontakt_email_db) . "</td></tr>
             <tr>
                 <td" . $table_td_1 . ">Adresse</td>
-                <td" . $table_td . ">" . $kontakt_adresse . "</td></tr>
+                <td" . $table_td . ">" . $kontakt_adresse_db . "</td></tr>
             <tr>
                 <td" . $table_td_1 . ">PLZ</td>
-                <td" . $table_td . ">" . $kontakt_plz . "</td></tr>
+                <td" . $table_td . ">" . h($kontakt_plz_db) . "</td></tr>
             <tr>
                 <td" . $table_td_1 . ">Ort</td>
-                <td" . $table_td . ">" . $kontakt_ort . "</td></tr>
+                <td" . $table_td . ">" . $kontakt_ort_db . "</td></tr>
             <tr>
                 <td" . $table_td_1 . ">Land</td>
-                <td" . $table_td . ">" . $kontakt_land . "</td></tr>
+                <td" . $table_td . ">" . h($kontakt_land_db) . "</td></tr>
             <tr>
                 <td" . $table_td_1 . ">Telefon</td>
-                <td" . $table_td . ">" . $kontakt_telefon . "</td>
+                <td" . $table_td . ">" . h($kontakt_telefon_db) . "</td>
              </tr>
             <tr>
                 <td" . $table_td_1 . ">Kontaktgrund</td>
-                <td" . $table_td . ">" . $kontakt_grund . "</td>
+                <td" . $table_td . ">" . $kontakt_grund_db . "</td>
             </tr>
             <tr>
                 <td" . $table_td_1 . ">Mitglied RhySauna Verein Schaffhausen?</td>
-                <td" . $table_td . ">" . $rsvs_mitglied . "</td>
+                <td" . $table_td . ">" . $rsvs_mitglied_db . "</td>
             </tr>        
             <tr>
                 <td" . $table_td_1 . ">IP-Adresse</td>
-                <td" . $table_td . ">" . $ipadresse . "</td>
+                <td" . $table_td . ">" . h($ipadresse) . "</td>
             </tr>
                 
             </table>
@@ -383,42 +365,34 @@ if($error === false)
             <table>
             <tr>
                 <td " . $table_td_1 . ">Mitteilung</td>
-                <td " . $table_td . ">" . nl2br($kontakt_mitteilung) . "</td>
+                <td " . $table_td . ">" . nl2br($kontakt_mitteilung_db) . "</td>
             </tr>
             </table>
     
         </div>
         </div>";
 
-	# Betreff
-	// $betreff       = "Kontaktformular ID = ".$max_kontakt_id." www.lindlisauna.ch";;
+    # Absender-E-Mail (Kunde)
+    $body = str_replace($zeichen_suchen, $zeichen_ersetzen, $body);
+    $absenderEmail = str_replace($zeichen_suchen, $zeichen_ersetzen, $kontakt_email_db);
+    $absenderName  = $kontakt_vname_db . " " . $kontakt_nname_db;
 
-	# Absender-E-Mail (Kunde)
-    $body = str_replace($zeichen_suchen,$zeichen_ersetzen,$body);
-    $absenderEmail = str_replace($zeichen_suchen,$zeichen_ersetzen,$kontakt_email);
-	# Name des Absenders (Kunde)
-	$absenderName  = $kontakt_vname." ".$kontakt_nname;
+    $bcc_empfang = "beat@faeh.sh";
 
-	# Empfaenger
-	// $empfaengerEmail = 'info@lindlisauna.ch';
-	// $empfaengerNamen = 'Kontaktformular www.lindlisauna.ch';
+    # E-Mail wird versendet
+    $mail = new wbmailer();
 
-	$bcc_empfang   = "beat@faeh.sh";
+    $mail->isSMTP();
+    $mail->Host       = WBMAILER_SMTP_HOST;
+    $mail->SMTPAuth   = WBMAILER_SMTP_AUTH;
+    $mail->Username   = WBMAILER_SMTP_USERNAME;
+    $mail->Password   = WBMAILER_SMTP_PASSWORD;
+    $mail->SMTPSecure = WBMAILER_SMTP_SECURE;
+    $mail->Port       = WBMAILER_SMTP_PORT;
 
-	# E-Mail wird versendet
-	$mail  = new wbmailer();
-
-	$mail->isSMTP();
-	$mail->Host       = WBMAILER_SMTP_HOST;       # Specify main and backup SMTP servers
-    $mail->SMTPAuth   = WBMAILER_SMTP_AUTH;       # Enable SMTP authentication
-    $mail->Username   = WBMAILER_SMTP_USERNAME;   # SMTP username
-    $mail->Password   = WBMAILER_SMTP_PASSWORD;   # SMTP password
-    $mail->SMTPSecure = WBMAILER_SMTP_SECURE;     # Enable TLS encryption, `ssl` also accepted
-    $mail->Port       = WBMAILER_SMTP_PORT;       # TCP port to connect to
-
-	$mail->SetLanguage ("de");
-	$mail->IsHTML(true);
-	$mail->CharSet = 'UTF-8';
+    $mail->SetLanguage("de");
+    $mail->IsHTML(true);
+    $mail->CharSet = 'UTF-8';
 
     # From
     $mail->setFrom('info@lindlisauna.ch', 'Kontaktformular www.lindlisauna.ch');
@@ -435,76 +409,66 @@ if($error === false)
     # BCC
     $mail->addBCC('beat@faeh.sh');
 
-	// $mail->Subject = $betreff;
     $mail->Subject = $kontakbestaetigung;
 
     if ($kontakt_grund === "Antrag Mitgliedschaft") {
-
-        $rechnung = WB_PATH."/media/attachments/rechnung_mitgliedschaft.pdf";
-        $mail->AddAttachment($rechnung); # Rechnung als PDF
-
-
+        $rechnung = WB_PATH . "/media/attachments/rechnung_mitgliedschaft.pdf";
+        if (file_exists($rechnung)) {
+            $mail->AddAttachment($rechnung);
+        }
     }
-	$html = stripslashes($body);
-	$mail->Body = $html;
-	$text = str_replace("<br/>","\n", $html);
-	$text = html_entity_decode(strip_tags($html));
-	# Mehrfache Leerzeichen entfernen
-	$text = preg_replace('/\s+/', ' ', $text);
-	$mail->AltBody = $text;
 
-	$mail->Send();
+    $html = stripslashes($body);
+    $mail->Body = $html;
+    $text = str_replace("<br/>", "\n", $html);
+    $text = html_entity_decode(strip_tags($html), ENT_QUOTES, 'UTF-8');
+    $text = preg_replace('/\s+/', ' ', $text);
+    $mail->AltBody = $text;
 
-	echo "<div align='center'><table>
-	<tr><td >".$body."</td><tr/>
-	</table></div>";
-}
-else
-{
-	# Beim Starten sieht der Kunde diese Eingabe-Maske
+    $mail->Send();
 
-	echo "
-	<div align='center'>
-	Ihre Daten werden vertraulich behandelt!
-	<br>".$mussfeld." = diese Angaben sind erforderlich
-	<br><br>";
-
-	if($error === true)
-	{
-		echo "<table>
-		<tr>
-		<td><font color='#FF0000'>Sie haben nicht alle erforderlichen Daten angegeben!</font>
-		</td>
-		</tr>
-		</table>
-		<br>";
-	}
-
-	echo $action;
-
-	# Kontaktformular
-
-	echo "<table>";
-
-    # Kontaktgrund  ------------------------------------------------------------------------------------
+    echo "<div align='center'><table>
+    <tr><td>" . $body . "</td></tr>
+    </table></div>";
+} else {
+    # Beim Starten sieht der Kunde diese Eingabe-Maske
 
     echo "
-	<tr>
-	<td><b>Kontaktgrund</b> ".$mussfeld."
-	<br>
-	<select name='kontakt_grund' value='".htmlentities($_POST['kontakt_grund'])."'";
-    if(isset($errorFelder['kontakt_grund']) OR $kontakt_grundErr > "")
-    {
-        echo "class='select_error'>";
+    <div align='center'>
+    Ihre Daten werden vertraulich behandelt!
+    <br>" . $mussfeld . " = diese Angaben sind erforderlich
+    <br><br>";
+
+    if ($error === true) {
+        echo "<table>
+        <tr>
+        <td><font color='#FF0000'>Sie haben nicht alle erforderlichen Daten angegeben!</font></td>
+        </tr>
+        </table>
+        <br>";
     }
-    else
-    {
-        echo " >";
+
+    echo $action;
+
+    # Kontaktformular
+    echo "<table>";
+
+    # Kontaktgrund
+    echo "
+    <tr>
+    <td><b>Kontaktgrund</b> " . $mussfeld . "
+    <br>
+    <select name='kontakt_grund'";
+
+    if (isset($errorFelder['kontakt_grund']) || $kontakt_grundErr !== '') {
+        echo " class='select_error'>";
+    } else {
+        echo ">";
     }
 
     echo "<option value=''>Bitte wählen&nbsp;&nbsp;</option>\n";
 
-    $selectedValue = htmlentities($_POST['kontakt_grund']);
+    $selectedValue = $kontakt_grund;
     $myArray = array(
         "Antrag Mitgliedschaft",
         "Anmeldung Newsletter",
@@ -518,329 +482,281 @@ else
         "Sonstiges"
     );
 
-    foreach($myArray as $element)
-    {
+    foreach ($myArray as $element) {
         $isSelected = ($selectedValue == $element) ? " selected" : "";
-        echo "<option value=\"".htmlentities($element, ENT_QUOTES)."\"$isSelected>".htmlentities($element)."</option>\n";
+        echo "<option value=\"" . h($element) . "\"$isSelected>" . h($element) . "</option>\n";
     }
 
     echo "</select>";
-    echo $kontakt_grundErr."</td></tr>";
+    echo $kontakt_grundErr . "</td></tr>";
 
     echo "<tr><td>&nbsp;</td></tr>";
 
-	# Anrede - Pflichtfeld ------------------------------------------------------------------------------------
-
-	echo "
-	<tr>
-	<td><b>Anrede</b> ".$mussfeld."
-	<br>
-	<select name='kontakt_anrede' value='".htmlentities($_POST['kontakt_anrede'])."'";
-
-	if(isset($errorFelder['kontakt_anrede']) OR $kontakt_anredeErr > "")
-	{
-		echo "class='select_error'>";
-	}
-	else
-	{
-		echo " >";
-	}
-
-	echo "<option value=''>Bitte wählen&nbsp;&nbsp;</option>\n";
-
-	$selectedValue = htmlentities($_POST['kontakt_anrede']);
-	$myArray = array("Frau","Herr");
-
-	foreach($myArray AS $element)
-	{
-		if($selectedValue == $element)
-		{
-			echo "<option value=".$element." selected>".$element."</option>\n";
-		}
-		else
-		{
-			echo "<option value=".$element.">".$element."</option>\n";
-		}
-	}
-
-	echo "</select>";
-	echo $kontakt_anredeErr."</td></tr>";
-
-	echo "<tr><td>&nbsp;</td></tr>";
-
-	# Vornamen - Pflichtfeld ------------------------------------------------------------------------------------
-
-	echo "
-	<tr>
-	<td><b>Vornamen</b> ".$mussfeld."
-	<br>
-	<input type='text' name='kontakt_vname' value='".htmlentities($_POST['kontakt_vname'])."'";
-	if(isset($errorFelder['kontakt_vname']) OR $kontakt_vnameErr > "")
-	{
-		echo " class='input_error'>";
-	}
-	else
-	{
-		echo " >\n";
-	}
-
-	echo $kontakt_vnameErr."</td></tr>";
-
-	echo "<tr><td>&nbsp;</td></tr>";
-
-	# Nachnamen - Pflichtfeld ------------------------------------------------------------------------------------
-
-	echo "
-	<tr>
-	<td><b>Nachnamen</b> ".$mussfeld."
-	<br>
-	<input type='text' name='kontakt_nname' value='".htmlentities($_POST['kontakt_nname'])."'";
-	if(isset($errorFelder['kontakt_nname']) OR $kontakt_nnameErr > "")
-	{
-		echo " class='input_error'>";
-	}
-	else
-	{
-		echo " >";
-	}
-
-	echo $kontakt_nnameErr."</td></tr>";
-
-	echo "<tr><td>&nbsp;</td></tr>";
-
-	# E-Mail - Pflichtfeld ------------------------------------------------------------------------------------
-
-	echo "
-	<tr>
-	<td><b>E-Mail</b> ".$mussfeld."
-	<br>
-	<input type='text' name='kontakt_email' value='".htmlentities($_POST['kontakt_email'])."'";
-	if(isset($errorFelder['kontakt_email']) OR $kontakt_emailErr > "")
-	{
-		echo "class='input_error'>";
-	}
-	else
-	{
-		echo " >";
-	}
-	echo $kontakt_emailErr."</td></tr>";
-
-	echo "<tr><td>&nbsp;</td></tr>";
-
-	# Strasse | Hausnummer - Pflichtfeld ------------------------------------------------------------------------------------
-
-	echo "
-	<tr>
-	<td><b>Strasse | Hausnummer</b> ".$mussfeld."
-	<br>
-	<input type='text' name='kontakt_adresse' value='".htmlentities($_POST['kontakt_adresse'])."'";
-	if(isset($errorFelder['kontakt_adresse']) OR $kontakt_adresseErr > "")
-	{
-		echo " class='input_error'>\n";
-	}
-	else
-	{
-		echo " >";
-	}
-	echo $kontakt_adresseErr."</td></tr>";
-
-	echo "<tr><td>&nbsp;</td></tr>";
-
-	# Postleitzahl - Pflichtfeld ------------------------------------------------------------------------------------
-
-	echo "
-	<tr>
-	<td><b>Postleitzahl</b> ".$mussfeld."
-	<br>
-	<input type='text' name='kontakt_plz' value='".htmlentities($_POST['kontakt_plz'])."'";
-	if(isset($errorFelder['kontakt_plz']) OR $kontakt_plzErr > "")
-	{
-		echo "class='input_error'>";
-	}
-	else
-	{
-		echo " >";
-	}
-	echo $kontakt_plzErr."</td></tr>";
-
-	echo "<tr><td>&nbsp;</td></tr>";
-
-	# Ort - Pflichtfeld   ------------------------------------------------------------------------------------
-
-	echo "
-	<tr>
-	<td><b>Ort</b> ".$mussfeld."
-	<br>
-	<input type='text' name='kontakt_ort' value='".htmlentities($_POST['kontakt_ort'])."'";
-	if(isset($errorFelder['kontakt_ort']) OR $kontakt_ortErr > "")
-	{
-		echo "class='input_error'>\n";
-	}
-	else
-	{
-		echo " >";
-	}
-	echo $kontakt_ortErr."</td></tr>";
-
-	echo "<tr><td>&nbsp;</td></tr>";
-
-	# Land - Pflichtfeld ------------------------------------------------------------------------------------
-
-	echo "
-	<tr>
-	<td><b>Land</b> ".$mussfeld."
-	<br>
-	<select name='kontakt_land' value='".htmlentities($_POST['kontakt_land'])."'";
-	if(isset($errorFelder['kontakt_land']) OR $kontakt_landErr > "")
-	{
-		echo "class='select_error'>";
-	}
-	else
-	{
-		echo " >";
-	}
-
-	echo "<option value=''>Bitte wählen&nbsp;&nbsp;</option>\n";
-
-	$selectedValue = htmlentities($_POST['kontakt_land']);
-	$myArray = array("Schweiz","Deutschland","Österreich","Italien","Frankreich","andere");
-
-
-	foreach($myArray AS $element)
-	{
-		if($selectedValue == $element)
-		{
-			echo "<option value=".$element." selected>".$element."</option>\n";
-		}
-		else
-		{
-			echo "<option value=".$element.">".$element."</option>\n";
-		}
-	}
-
-	echo "</select>";
-	echo $kontakt_landErr."</td></tr>";
-
-	echo "<tr><td>&nbsp;</td></tr>";
-
-	# Telefon ------------------------------------------------------------------------------------
-
-	echo "
-	<tr>
-	<td><b>Telefon</b> ".$mussfeld."
-	<br>
-	<input type='text' name='kontakt_telefon' value='".htmlentities($_POST['kontakt_telefon'])."'";
-	if(isset($errorFelder['kontakt_telefon']) OR $kontakt_telefonErr > "")
-	{
-		echo "class='input_error'>";
-	}
-	else
-	{
-		echo " >";
-	}
-	echo $kontakt_telefonErr."</td></tr>";
-
-	echo "<tr><td>&nbsp;</td></tr>";
-
-    # Mitglieder RSVS ----------------------------------------------------------------------------------
-
-    // rsvs_mitglied
-
-
+    # Anrede
     echo "
-	<tr>
-	<td><b>Mitglied RhySauna Verein Schaffhausen?</b> ".$mussfeld."
-	<br>
-	<select name='rsvs_mitglied' value='".htmlentities($_POST['rsvs_mitglied'])."'";
-    if(isset($errorFelder['rsvs_mitglied']) OR $rsvs_mitglieddErr > "")
-    {
-        echo "class='select_error'>";
-    }
-    else
-    {
-        echo " >";
+    <tr>
+    <td><b>Anrede</b> " . $mussfeld . "
+    <br>
+    <select name='kontakt_anrede'";
+
+    if (isset($errorFelder['kontakt_anrede']) || $kontakt_anredeErr !== '') {
+        echo " class='select_error'>";
+    } else {
+        echo ">";
     }
 
     echo "<option value=''>Bitte wählen&nbsp;&nbsp;</option>\n";
 
-    $selectedValue = htmlentities($_POST['rsvs_mitglied']);
-    $myArray = array(
-        "ja",
-        "nein"
-    );
+    $selectedValue = $kontakt_anrede;
+    $myArray = array("Frau", "Herr");
 
-    foreach($myArray as $element)
-    {
-        $isSelected = ($selectedValue == $element) ? " selected" : "";
-        echo "<option value=\"".htmlentities($element, ENT_QUOTES)."\"$isSelected>".htmlentities($element)."</option>\n";
+    foreach ($myArray as $element) {
+        if ($selectedValue == $element) {
+            echo "<option value=\"" . h($element) . "\" selected>" . h($element) . "</option>\n";
+        } else {
+            echo "<option value=\"" . h($element) . "\">" . h($element) . "</option>\n";
+        }
     }
 
     echo "</select>";
-    echo $rsvs_mitglieddErr."</td></tr>";
+    echo $kontakt_anredeErr . "</td></tr>";
 
     echo "<tr><td>&nbsp;</td></tr>";
 
-	# MITTEILUNG ------------------------------------------------------------------------------------
+    # Vornamen
+    echo "
+    <tr>
+    <td><b>Vornamen</b> " . $mussfeld . "
+    <br>
+    <input type='text' name='kontakt_vname' value='" . h($kontakt_vname) . "'";
 
-	echo "
-	<tr>
-	<td style='vertical-align: text-top;'><b>Mitteilung</b> ".$mussfeld."<br>\n";
+    if (isset($errorFelder['kontakt_vname']) || $kontakt_vnameErr !== '') {
+        echo " class='input_error'>";
+    } else {
+        echo ">";
+    }
 
-	$textarea_class = (isset($errorFelder['kontakt_mitteilung']) || $kontakt_mitteilungErr != "")
-		? " class='textarea_error'"
-		: "";
+    echo $kontakt_vnameErr . "</td></tr>";
 
-	$mitteilung = trim($_POST['kontakt_mitteilung'] ?? ''); // Trim entfernt Leerzeichen und Zeilenumbrüche
+    echo "<tr><td>&nbsp;</td></tr>";
 
-	echo "<textarea maxlength='" . ($max_laenge * 25) . "' 
-		name='kontakt_mitteilung'{$textarea_class}>"
-		. htmlentities($mitteilung, ENT_QUOTES) .
-		"</textarea>";
+    # Nachnamen
+    echo "
+    <tr>
+    <td><b>Nachnamen</b> " . $mussfeld . "
+    <br>
+    <input type='text' name='kontakt_nname' value='" . h($kontakt_nname) . "'";
 
-	echo $kontakt_mitteilungErr . "</td></tr>";
+    if (isset($errorFelder['kontakt_nname']) || $kontakt_nnameErr !== '') {
+        echo " class='input_error'>";
+    } else {
+        echo ">";
+    }
 
+    echo $kontakt_nnameErr . "</td></tr>";
 
-	echo "<tr><td>&nbsp;</td></tr>";
+    echo "<tr><td>&nbsp;</td></tr>";
 
-	# Captcha ----------------------------------------------------------------------------------------
+    # E-Mail
+    echo "
+    <tr>
+    <td><b>E-Mail</b> " . $mussfeld . "
+    <br>
+    <input type='text' name='kontakt_email' value='" . h($kontakt_email_post) . "'";
 
-	echo "<tr><td><b>Pr&uuml;fziffer</b> ".$mussfeld."</td></tr>";
+    if (isset($errorFelder['kontakt_email']) || $kontakt_emailErr !== '') {
+        echo " class='input_error'>";
+    } else {
+        echo ">";
+    }
 
-	echo "<tr>
-								<td style='text-align: center;'>
-								<img src=\"".WB_URL."/include/captcha_reduziert/captcha.php?RELOAD=\" 
-								alt=\"Captcha\" title=\"Klicken, um das Captcha neu zu laden\" 
-								onclick=\"this.src+=1;document.getElementById('captcha_code').value='';\" 	
-								width=\"140\" height=\"40\" />
-								<br>
-								Um einen neuen Code zu generieren, bitte auf die Grafik klicken.
-								</td>
-							</tr>			
-			<tr>
-			<td style='text-align: center;'>
-					".$mussfeld." Bitte Ergebnis eintragen
-					<div style='text-align: center;'>
-		<input type='text' name='captcha_code' id='captcha_code' style='text-align: center;width: 100px;'";
-	if(isset($errorFelder['captcha_code']))
-	{
-		echo "class='bg_error'>\n";
-	}
-	else
-	{
-		echo " >\n";
-	}
+    echo $kontakt_emailErr . "</td></tr>";
 
-	echo "</div></td></tr>";
+    echo "<tr><td>&nbsp;</td></tr>";
 
-	# Formular senden -------------------------------------------------------------------------------------
+    # Strasse | Hausnummer
+    echo "
+    <tr>
+    <td><b>Strasse | Hausnummer</b> " . $mussfeld . "
+    <br>
+    <input type='text' name='kontakt_adresse' value='" . h($kontakt_adresse) . "'";
 
-	echo "<tr><td style='text-align: center;'>
-	<br>
-	<input class='myButtonGross' type='submit' name='submit_insert' value='senden'></td></tr>";
+    if (isset($errorFelder['kontakt_adresse']) || $kontakt_adresseErr !== '') {
+        echo " class='input_error'>";
+    } else {
+        echo ">";
+    }
 
-	echo "</table>";
-	echo "</form>";
+    echo $kontakt_adresseErr . "</td></tr>";
+
+    echo "<tr><td>&nbsp;</td></tr>";
+
+    # Postleitzahl
+    echo "
+    <tr>
+    <td><b>Postleitzahl</b> " . $mussfeld . "
+    <br>
+    <input type='text' name='kontakt_plz' value='" . h($kontakt_plz) . "'";
+
+    if (isset($errorFelder['kontakt_plz']) || $kontakt_plzErr !== '') {
+        echo " class='input_error'>";
+    } else {
+        echo ">";
+    }
+
+    echo $kontakt_plzErr . "</td></tr>";
+
+    echo "<tr><td>&nbsp;</td></tr>";
+
+    # Ort
+    echo "
+    <tr>
+    <td><b>Ort</b> " . $mussfeld . "
+    <br>
+    <input type='text' name='kontakt_ort' value='" . h($kontakt_ort) . "'";
+
+    if (isset($errorFelder['kontakt_ort']) || $kontakt_ortErr !== '') {
+        echo " class='input_error'>";
+    } else {
+        echo ">";
+    }
+
+    echo $kontakt_ortErr . "</td></tr>";
+
+    echo "<tr><td>&nbsp;</td></tr>";
+
+    # Land
+    echo "
+    <tr>
+    <td><b>Land</b> " . $mussfeld . "
+    <br>
+    <select name='kontakt_land'";
+
+    if (isset($errorFelder['kontakt_land']) || $kontakt_landErr !== '') {
+        echo " class='select_error'>";
+    } else {
+        echo ">";
+    }
+
+    echo "<option value=''>Bitte wählen&nbsp;&nbsp;</option>\n";
+
+    $selectedValue = $kontakt_land;
+    $myArray = array("Schweiz", "Deutschland", "Österreich", "Italien", "Frankreich", "andere");
+
+    foreach ($myArray as $element) {
+        if ($selectedValue == $element) {
+            echo "<option value=\"" . h($element) . "\" selected>" . h($element) . "</option>\n";
+        } else {
+            echo "<option value=\"" . h($element) . "\">" . h($element) . "</option>\n";
+        }
+    }
+
+    echo "</select>";
+    echo $kontakt_landErr . "</td></tr>";
+
+    echo "<tr><td>&nbsp;</td></tr>";
+
+    # Telefon
+    echo "
+    <tr>
+    <td><b>Telefon</b> " . $mussfeld . "
+    <br>
+    <input type='text' name='kontakt_telefon' value='" . h($kontakt_telefon) . "'";
+
+    if (isset($errorFelder['kontakt_telefon']) || $kontakt_telefonErr !== '') {
+        echo " class='input_error'>";
+    } else {
+        echo ">";
+    }
+
+    echo $kontakt_telefonErr . "</td></tr>";
+
+    echo "<tr><td>&nbsp;</td></tr>";
+
+    # Mitglieder RSVS
+    echo "
+    <tr>
+    <td><b>Mitglied RhySauna Verein Schaffhausen?</b> " . $mussfeld . "
+    <br>
+    <select name='rsvs_mitglied'";
+
+    if (isset($errorFelder['rsvs_mitglied']) || $rsvs_mitglieddErr !== '') {
+        echo " class='select_error'>";
+    } else {
+        echo ">";
+    }
+
+    echo "<option value=''>Bitte wählen&nbsp;&nbsp;</option>\n";
+
+    $selectedValue = $rsvs_mitglied;
+    $myArray = array("ja", "nein");
+
+    foreach ($myArray as $element) {
+        $isSelected = ($selectedValue == $element) ? " selected" : "";
+        echo "<option value=\"" . h($element) . "\"$isSelected>" . h($element) . "</option>\n";
+    }
+
+    echo "</select>";
+    echo $rsvs_mitglieddErr . "</td></tr>";
+
+    echo "<tr><td>&nbsp;</td></tr>";
+
+    # Mitteilung
+    echo "
+    <tr>
+    <td style='vertical-align: text-top;'><b>Mitteilung</b> " . $mussfeld . "<br>\n";
+
+    $textarea_class = (isset($errorFelder['kontakt_mitteilung']) || $kontakt_mitteilungErr != "")
+        ? " class='textarea_error'"
+        : "";
+
+    $mitteilung = $kontakt_mitteilung;
+
+    echo "<textarea maxlength='" . ($max_laenge * 25) . "'
+        name='kontakt_mitteilung'{$textarea_class}>"
+        . h($mitteilung) .
+        "</textarea>";
+
+    echo $kontakt_mitteilungErr . "</td></tr>";
+
+    echo "<tr><td>&nbsp;</td></tr>";
+
+    # Captcha
+    echo "<tr><td><b>Pr&uuml;fziffer</b> " . $mussfeld . "</td></tr>";
+
+    echo "<tr>
+        <td style='text-align: center;'>
+        <img src=\"" . WB_URL . "/include/captcha_reduziert/captcha.php?RELOAD=\"
+        alt=\"Captcha\" title=\"Klicken, um das Captcha neu zu laden\"
+        onclick=\"this.src+=1;document.getElementById('captcha_code').value='';\"
+        width=\"140\" height=\"40\" />
+        <br>
+        Um einen neuen Code zu generieren, bitte auf die Grafik klicken.
+        </td>
+    </tr>
+    <tr>
+    <td style='text-align: center;'>
+            " . $mussfeld . " Bitte Ergebnis eintragen
+            <div style='text-align: center;'>
+    <input type='text' name='captcha_code' id='captcha_code' style='text-align: center;width: 100px;'";
+
+    if (isset($errorFelder['captcha_code'])) {
+        echo " class='bg_error'>";
+    } else {
+        echo ">";
+    }
+
+    echo "</div></td></tr>";
+
+    # Formular senden
+    echo "<tr><td style='text-align: center;'>
+    <br>
+    <input class='myButtonGross' type='submit' name='submit_insert' value='senden'></td></tr>";
+
+    echo "</table>";
+    echo "</form>";
 }
+
 echo "</div>
 <p>&nbsp;</p>";
 
@@ -849,5 +765,3 @@ echo "SQL<br><pre>".$sql."</pre>";
 echo "<br>mitteilungErr".$kontakt_mitteilungErr."<br>";
 echo var_dump($_POST);
 */
-// Echo "Kontaktgrund = ".$_POST['kontakt_grund'];
-

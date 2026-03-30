@@ -8,7 +8,7 @@ if ($mysqli->connect_error) {
 }
 $mysqli->set_charset("utf8mb4");
 
-$action  = "<form action='".$_SERVER['PHP_SELF']."' method='POST'>";
+$action  = "<form action='" . htmlspecialchars($_SERVER['PHP_SELF'] ?? '', ENT_QUOTES, 'UTF-8') . "' method='POST'>";
 $go_back = "<html><head><meta http-equiv='refresh' content='1; URL=" . WB_URL . "/pages/kontakt/edit.php'></head>";
 
 echo "<div align='center'>";
@@ -19,11 +19,10 @@ echo "<div align='center'>";
 function must_prepare(mysqli $db, string $sql): mysqli_stmt {
     $stmt = $db->prepare($sql);
     if (!$stmt) {
-        // wichtig: SQL + Error ausgeben, sonst ist Debugging blind
         die(
-            "<pre style='color:#b00;white-space:pre-wrap;'>".
-            "SQL PREPARE FEHLGESCHLAGEN:\n".$sql."\n\n".
-            "MYSQL ERROR: ".$db->error.
+            "<pre style='color:#b00;white-space:pre-wrap;'>" .
+            "SQL PREPARE FEHLGESCHLAGEN:\n" . $sql . "\n\n" .
+            "MYSQL ERROR: " . $db->error .
             "</pre>"
         );
     }
@@ -42,14 +41,16 @@ function like_pattern(string $input): string {
     $s = str_replace('!', '!!', $s);
     $s = str_replace('%', '!%', $s);
     $s = str_replace('_', '!_', $s);
-    return "%".$s."%";
+    return "%" . $s . "%";
 }
 
 /**
  * NULL helper
  */
 function null_if_empty($v) {
-    if ($v === '' || $v === null) return null;
+    if ($v === '' || $v === null) {
+        return null;
+    }
     return $v;
 }
 
@@ -93,14 +94,14 @@ if (isset($_POST['submit_edit'])) {
             echo "<table class='sortierbar' id='myTable'>
                 <tr>
                     <th>Datensatz-ID</th>
-                    <td>".$kontakt_id."</td>
-                    <input type='hidden' name='kontakt_id' value='".$kontakt_id."'>
+                    <td>" . htmlspecialchars((string)$kontakt_id, ENT_QUOTES, 'UTF-8') . "</td>
+                    <input type='hidden' name='kontakt_id' value='" . htmlspecialchars((string)$kontakt_id, ENT_QUOTES, 'UTF-8') . "'>
                 </tr>			
 
                 <tr>
                     <th>Erfassungsdatum</th>
-                    <td>".datumswandler_ger($kontakt_eintrag)."</td>
-                    <input type='hidden' name='kontakt_eintrag' value='".$kontakt_eintrag."'>
+                    <td>" . datumswandler_ger($kontakt_eintrag) . "</td>
+                    <input type='hidden' name='kontakt_eintrag' value='" . htmlspecialchars((string)$kontakt_eintrag, ENT_QUOTES, 'UTF-8') . "'>
                 </tr>
 
                 <tr>
@@ -113,7 +114,7 @@ if (isset($_POST['submit_edit'])) {
             $options = ["Frau", "Herr"];
             foreach ($options as $option) {
                 $selected = ($selectedValue === $option) ? " selected" : "";
-                echo "<option value=\"{$option}\"{$selected}>{$option}</option>";
+                echo "<option value=\"" . htmlspecialchars($option, ENT_QUOTES, 'UTF-8') . "\"{$selected}>" . htmlspecialchars($option, ENT_QUOTES, 'UTF-8') . "</option>";
             }
 
             echo "      </select>
@@ -122,32 +123,32 @@ if (isset($_POST['submit_edit'])) {
 
                 <tr>
                     <th>Vornamen</th>
-                    <td><input type='text' name='kontakt_vname' value='".htmlspecialchars($kontakt_vname ?? '', ENT_QUOTES)."'></td>
+                    <td><input type='text' name='kontakt_vname' value='" . htmlspecialchars($kontakt_vname ?? '', ENT_QUOTES, 'UTF-8') . "'></td>
                 </tr>
 
                 <tr>
                     <th>Nachnamen</th>
-                    <td><input type='text' name='kontakt_nname' value='".htmlspecialchars($kontakt_nname ?? '', ENT_QUOTES)."'></td>
+                    <td><input type='text' name='kontakt_nname' value='" . htmlspecialchars($kontakt_nname ?? '', ENT_QUOTES, 'UTF-8') . "'></td>
                 </tr>
 
                 <tr>
                     <th>E-Mail</th>
-                    <td><input type='text' name='kontakt_email' value='".htmlspecialchars($kontakt_email ?? '', ENT_QUOTES)."'></td>
+                    <td><input type='text' name='kontakt_email' value='" . htmlspecialchars($kontakt_email ?? '', ENT_QUOTES, 'UTF-8') . "'></td>
                 </tr>
 
                 <tr>
                     <th>Strasse | Hausnummer</th>
-                    <td><input type='text' name='kontakt_adresse' value='".htmlspecialchars($kontakt_adresse ?? '', ENT_QUOTES)."'></td>
+                    <td><input type='text' name='kontakt_adresse' value='" . htmlspecialchars($kontakt_adresse ?? '', ENT_QUOTES, 'UTF-8') . "'></td>
                 </tr>
 
                 <tr>
                     <th>PLZ</th>
-                    <td><input type='text' name='kontakt_plz' value='".htmlspecialchars($kontakt_plz ?? '', ENT_QUOTES)."'></td>
+                    <td><input type='text' name='kontakt_plz' value='" . htmlspecialchars($kontakt_plz ?? '', ENT_QUOTES, 'UTF-8') . "'></td>
                 </tr>
 
                 <tr>
                     <th>Ort</th>
-                    <td><input type='text' name='kontakt_ort' value='".htmlspecialchars($kontakt_ort ?? '', ENT_QUOTES)."'></td>
+                    <td><input type='text' name='kontakt_ort' value='" . htmlspecialchars($kontakt_ort ?? '', ENT_QUOTES, 'UTF-8') . "'></td>
                 </tr>
 
                 <tr><th>Land</th>";
@@ -161,7 +162,7 @@ if (isset($_POST['submit_edit'])) {
 
             foreach ($myArray as $element) {
                 $isSelected = ($selectedValue == $element) ? " selected" : "";
-                echo "<option value=\"".htmlentities($element, ENT_QUOTES)."\"$isSelected>".htmlentities($element)."</option>\n";
+                echo "<option value=\"" . htmlentities($element, ENT_QUOTES, 'UTF-8') . "\"$isSelected>" . htmlentities($element, ENT_QUOTES, 'UTF-8') . "</option>\n";
             }
             echo "      </select>
                   </td>
@@ -169,7 +170,7 @@ if (isset($_POST['submit_edit'])) {
 
                 <tr>
                     <th>Telefon</th>
-                    <td><input type='text' name='kontakt_telefon' value='".htmlspecialchars($kontakt_telefon ?? '', ENT_QUOTES)."'></td>
+                    <td><input type='text' name='kontakt_telefon' value='" . htmlspecialchars($kontakt_telefon ?? '', ENT_QUOTES, 'UTF-8') . "'></td>
                 </tr>
 
                 <tr>
@@ -195,7 +196,7 @@ if (isset($_POST['submit_edit'])) {
 
             foreach ($myArray as $element) {
                 $isSelected = ($selectedValue == $element) ? " selected" : "";
-                echo "<option value=\"".htmlentities($element, ENT_QUOTES)."\"$isSelected>".htmlentities($element)."</option>\n";
+                echo "<option value=\"" . htmlentities($element, ENT_QUOTES, 'UTF-8') . "\"$isSelected>" . htmlentities($element, ENT_QUOTES, 'UTF-8') . "</option>\n";
             }
             echo "      </select>
                   </td>
@@ -213,7 +214,7 @@ if (isset($_POST['submit_edit'])) {
 
             foreach ($myArray as $element) {
                 $isSelected = ($selectedValue == $element) ? " selected" : "";
-                echo "<option value=\"".htmlentities($element, ENT_QUOTES)."\"$isSelected>".htmlentities($element)."</option>\n";
+                echo "<option value=\"" . htmlentities($element, ENT_QUOTES, 'UTF-8') . "\"$isSelected>" . htmlentities($element, ENT_QUOTES, 'UTF-8') . "</option>\n";
             }
             echo "      </select>
                   </td>
@@ -221,14 +222,14 @@ if (isset($_POST['submit_edit'])) {
 
                 <tr>
                     <th>Mitteilung</th>
-                    <td><textarea rows='9' name='kontakt_mitteilung'>".htmlspecialchars($kontakt_mitteilung ?? '', ENT_QUOTES)."</textarea></td>
+                    <td><textarea rows='9' name='kontakt_mitteilung'>" . htmlspecialchars($kontakt_mitteilung ?? '', ENT_QUOTES, 'UTF-8') . "</textarea></td>
                 </tr>
 
                 <tr><td colspan='2' style='text-align: center;'>Einträge zur Erinnerung</td></tr>
 
                 <tr>
                     <th>Bemerkung</th>
-                    <td><textarea rows='9' name='kontakt_bemerkung'>".htmlspecialchars($kontakt_bemerkung ?? '', ENT_QUOTES)."</textarea></td>
+                    <td><textarea rows='9' name='kontakt_bemerkung'>" . htmlspecialchars($kontakt_bemerkung ?? '', ENT_QUOTES, 'UTF-8') . "</textarea></td>
                 </tr>
 
                 <tr>
@@ -241,7 +242,7 @@ if (isset($_POST['submit_edit'])) {
             $options = ["ja", "nein"];
             foreach ($options as $option) {
                 $selected = ($selectedValue === $option) ? " selected" : "";
-                echo "<option value=\"{$option}\"{$selected}>{$option}</option>";
+                echo "<option value=\"" . htmlspecialchars($option, ENT_QUOTES, 'UTF-8') . "\"{$selected}>" . htmlspecialchars($option, ENT_QUOTES, 'UTF-8') . "</option>";
             }
 
             echo "      </select>
@@ -255,7 +256,7 @@ if (isset($_POST['submit_edit'])) {
             if (empty($kontakt_termin) || $kontakt_termin === '0000-00-00') {
                 echo "<input style='width: 150px;' id='arrival' type='date' name='kontakt_termin' value=''>";
             } else {
-                echo "<input style='width: 150px;' id='arrival' type='date' name='kontakt_termin' value='".htmlspecialchars($kontakt_termin, ENT_QUOTES)."'>";
+                echo "<input style='width: 150px;' id='arrival' type='date' name='kontakt_termin' value='" . htmlspecialchars($kontakt_termin, ENT_QUOTES, 'UTF-8') . "'>";
             }
 
             echo "      </td>
@@ -263,7 +264,7 @@ if (isset($_POST['submit_edit'])) {
 
                 <tr>
                     <th>IP-Adresse</th>
-                    <td>".htmlspecialchars($ipadresse ?? '', ENT_QUOTES)."</td>
+                    <td>" . htmlspecialchars($ipadresse ?? '', ENT_QUOTES, 'UTF-8') . "</td>
                 </tr>
 
                 <tr>
@@ -274,7 +275,7 @@ if (isset($_POST['submit_edit'])) {
                     <td colspan='2' style='text-align: center;'>
                         <input type='submit' name='submit_update' value='UPDATE' class='myButtonGross'>
                         <br>
-                        <input type='button' onClick=\"parent.location='".WB_URL."/pages/kontakt/edit.php'\" value='zurück zur Übersicht'  class='myButtonGross'>
+                        <input type='button' onClick=\"parent.location='" . WB_URL . "/pages/kontakt/edit.php'\" value='zurück zur Übersicht'  class='myButtonGross'>
                     </td>
                 </tr>
             </table>
@@ -363,23 +364,23 @@ elseif (isset($_POST['submit_update'])) {
         <table id='myTable'>
             <tr>
                 <td colspan='2' style='text-align: center;'>
-                    Der Datensatz<br><br><b>ID".$kontakt_id."
-                    <br>".htmlspecialchars($kontakt_vname, ENT_QUOTES)." ".htmlspecialchars($kontakt_nname, ENT_QUOTES)."</b>
+                    Der Datensatz<br><br><b>ID" . htmlspecialchars((string)$kontakt_id, ENT_QUOTES, 'UTF-8') . "
+                    <br>" . htmlspecialchars($kontakt_vname, ENT_QUOTES, 'UTF-8') . " " . htmlspecialchars($kontakt_nname, ENT_QUOTES, 'UTF-8') . "</b>
                     <br><br>wurde erfolgreich angepasst!<br>
                 </td>
             </tr>
 
             <tr>
                 <td style='text-align: center;'>zurück zum Datensatz<br> 
-                    <input type ='submit' name ='submit_edit' value='".$kontakt_id."' class='myButtonKlein'>
-                    <input type ='hidden' name ='submit_auswahl' value='".$kontakt_id."'>
+                    <input type ='submit' name ='submit_edit' value='" . htmlspecialchars((string)$kontakt_id, ENT_QUOTES, 'UTF-8') . "' class='myButtonKlein'>
+                    <input type ='hidden' name ='submit_auswahl' value='" . htmlspecialchars((string)$kontakt_id, ENT_QUOTES, 'UTF-8') . "'>
                     <br>
                 </td>
             </tr>
 
             <tr>
                 <td colspan='2' style='text-align: center;'>
-                    <input type='button' onClick=\"parent.location='".WB_URL."/pages/kontakt/edit.php'\" 
+                    <input type='button' onClick=\"parent.location='" . WB_URL . "/pages/kontakt/edit.php'\" 
                            value='zurück zur Übersicht' class='myButtonGross'>
                 </td>
             </tr>
@@ -400,7 +401,7 @@ elseif (isset($_POST['submit_delete'])) {
         $stmt->close();
 
         echo $go_back;
-        echo "<div style='color: red; font-weight: bold;'>Der Datensatz ".htmlspecialchars((string)$kontakt_id, ENT_QUOTES)." wurde erfolgreich gelöscht.</div>";
+        echo "<div style='color: red; font-weight: bold;'>Der Datensatz " . htmlspecialchars((string)$kontakt_id, ENT_QUOTES, 'UTF-8') . " wurde erfolgreich gelöscht.</div>";
     } else {
         echo "<p>Bitte w&auml;hlen Sie einen Datensatz mittels Radiobutton aus!";
         echo $go_back;
@@ -458,7 +459,9 @@ else {
         )";
 
         $types .= str_repeat("s", 13);
-        for ($i = 0; $i < 13; $i++) $params[] = $like;
+        for ($i = 0; $i < 13; $i++) {
+            $params[] = $like;
+        }
     }
 
     if ($grund !== '' && strcasecmp($grund, 'Alle') !== 0) {
@@ -501,14 +504,16 @@ else {
 
         $stmt->bind_param($types2, ...$params2);
     } else {
-        if ($types !== "") $stmt->bind_param($types, ...$params);
+        if ($types !== "") {
+            $stmt->bind_param($types, ...$params);
+        }
     }
 
     $stmt->execute();
     $result = $stmt->get_result();
 
     $shown  = $result ? $result->num_rows : 0;
-    $from   = ($total_entries > 0) ? ( $limit ? ($offset + 1) : 1 ) : 0;
+    $from   = ($total_entries > 0) ? ($limit ? ($offset + 1) : 1) : 0;
     $to     = ($limit ? ($offset + $shown) : $shown);
 
     // HTML
@@ -538,7 +543,7 @@ else {
 
     <form method='GET' class='filter-form'>
         <label class='myLabel'>Volltextsuche:
-            <input type='text' name='search' value='" . htmlspecialchars($search, ENT_QUOTES) . "'>
+            <input type='text' name='search' value='" . htmlspecialchars($search, ENT_QUOTES, 'UTF-8') . "'>
         </label>
         <label class='myLabel'>Anzahl:
             <select name='limit'>
@@ -551,11 +556,11 @@ else {
 
         <label class='myLabel'>Kontaktgrund:
             <select name='kontakt_grund' onchange='this.form.submit()'>
-                <option value='Alle'".(strcasecmp($grund,'Alle')===0 ? " selected" : "").">Alle</option>";
+                <option value='Alle'" . (strcasecmp($grund, 'Alle') === 0 ? " selected" : "") . ">Alle</option>";
 
     foreach ($grund_options as $opt) {
         $sel = ($grund === $opt) ? " selected" : "";
-        echo "<option value='".htmlspecialchars($opt, ENT_QUOTES)."'$sel>".htmlspecialchars($opt)."</option>";
+        echo "<option value='" . htmlspecialchars($opt, ENT_QUOTES, 'UTF-8') . "'$sel>" . htmlspecialchars($opt, ENT_QUOTES, 'UTF-8') . "</option>";
     }
 
     echo "  </select>
@@ -565,12 +570,14 @@ else {
     </form>";
 
     echo "<div style='margin:5px 0;color:#555;'>
-            Angezeigt: <strong>$shown</strong>"
-        . ($limit ? " (Datensätze $from–$to von <strong>$total_entries</strong>)" : " von <strong>$total_entries</strong> gesamt")
+            Angezeigt: <strong>" . $shown . "</strong>"
+        . ($limit
+            ? " (Datensätze " . $from . "–" . $to . " von <strong>" . $total_entries . "</strong>)"
+            : " von <strong>" . $total_entries . "</strong> gesamt")
         . "</div>";
 
     if ($result && $result->num_rows > 0) {
-        echo "<form action='".$_SERVER['PHP_SELF']."' method='POST'>
+        echo "<form action='" . htmlspecialchars($_SERVER['PHP_SELF'] ?? '', ENT_QUOTES, 'UTF-8') . "' method='POST'>
             <div class='table-scrollable'>
             <table class='sortierbar' id='myTableNormal'>
                 <thead>
@@ -598,23 +605,23 @@ else {
             $erinnerung = !empty($row['kontakt_erinnerung']) ? $row['kontakt_erinnerung'] : '';
 
             echo "<tr>
-                <td>".htmlspecialchars($row['kontakt_id'], ENT_QUOTES)."</td>
-                <td>".htmlspecialchars($row['kontakt_grund'] ?? '', ENT_QUOTES)."</td>
+                <td>" . htmlspecialchars((string)$row['kontakt_id'], ENT_QUOTES, 'UTF-8') . "</td>
+                <td>" . htmlspecialchars($row['kontakt_grund'] ?? '', ENT_QUOTES, 'UTF-8') . "</td>
                 <td>
-                    ".htmlspecialchars($row['kontakt_anrede'] ?? '', ENT_QUOTES)."<br>
-                    ".htmlspecialchars($row['kontakt_vname'] ?? '', ENT_QUOTES)." ".htmlspecialchars($row['kontakt_nname'] ?? '', ENT_QUOTES)."<br>
-                    ".htmlspecialchars($row['kontakt_adresse'] ?? '', ENT_QUOTES)."<br>
-                    ".htmlspecialchars($row['kontakt_plz'] ?? '', ENT_QUOTES)." ".htmlspecialchars($row['kontakt_ort'] ?? '', ENT_QUOTES)."<br>
-                    ".htmlspecialchars($row['kontakt_land'] ?? '', ENT_QUOTES)."<br>
-                    ".htmlspecialchars($row['kontakt_telefon'] ?? '', ENT_QUOTES)."<br>
-                    ".htmlspecialchars($row['kontakt_email'] ?? '', ENT_QUOTES)."
+                    " . htmlspecialchars($row['kontakt_anrede'] ?? '', ENT_QUOTES, 'UTF-8') . "<br>
+                    " . htmlspecialchars($row['kontakt_vname'] ?? '', ENT_QUOTES, 'UTF-8') . " " . htmlspecialchars($row['kontakt_nname'] ?? '', ENT_QUOTES, 'UTF-8') . "<br>
+                    " . htmlspecialchars($row['kontakt_adresse'] ?? '', ENT_QUOTES, 'UTF-8') . "<br>
+                    " . htmlspecialchars($row['kontakt_plz'] ?? '', ENT_QUOTES, 'UTF-8') . " " . htmlspecialchars($row['kontakt_ort'] ?? '', ENT_QUOTES, 'UTF-8') . "<br>
+                    " . htmlspecialchars($row['kontakt_land'] ?? '', ENT_QUOTES, 'UTF-8') . "<br>
+                    " . htmlspecialchars($row['kontakt_telefon'] ?? '', ENT_QUOTES, 'UTF-8') . "<br>
+                    " . htmlspecialchars($row['kontakt_email'] ?? '', ENT_QUOTES, 'UTF-8') . "
                 </td>
 
-                <td>".htmlspecialchars($erinnerung, ENT_QUOTES)."</td>
-                <td>".htmlspecialchars($termin, ENT_QUOTES)."</td>
+                <td>" . htmlspecialchars($erinnerung, ENT_QUOTES, 'UTF-8') . "</td>
+                <td>" . htmlspecialchars($termin, ENT_QUOTES, 'UTF-8') . "</td>
 
                 <td style='text-align: center;'>
-                    <input type='radio' name='submit_auswahl' value='".htmlspecialchars($row['kontakt_id'], ENT_QUOTES)."'>
+                    <input type='radio' name='submit_auswahl' value='" . htmlspecialchars((string)$row['kontakt_id'], ENT_QUOTES, 'UTF-8') . "'>
                 </td>
 
                 <td style='text-align: center;'>
@@ -623,7 +630,7 @@ else {
 
                 <td class='center'>
                     <input type='submit' name='submit_delete' value='löschen' class='myButtonKlein'
-                    onclick=\"return confirm('Wirklich löschen: Datensatz ".htmlspecialchars($row['kontakt_id'], ENT_QUOTES)."?')\">
+                    onclick=\"return confirm('Wirklich löschen: Datensatz " . htmlspecialchars((string)$row['kontakt_id'], ENT_QUOTES, 'UTF-8') . "?')\">
                 </td>
             </tr>";
         }
