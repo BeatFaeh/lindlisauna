@@ -570,11 +570,12 @@ else {
     </form>";
 
     echo "<div style='margin:5px 0;color:#555;'>
-            Angezeigt: <strong>" . $shown . "</strong>"
+        Angezeigt: <strong>" . $shown . "</strong>"
         . ($limit
-            ? " (Datensätze " . $from . "–" . $to . " von <strong>" . $total_entries . "</strong>)"
+            ? " (Datensätze " . $from . " - " . $to . " von <strong>" . $total_entries . "</strong>)"
             : " von <strong>" . $total_entries . "</strong> gesamt")
         . "</div>";
+
 
     if ($result && $result->num_rows > 0) {
         echo "<form action='" . htmlspecialchars($_SERVER['PHP_SELF'] ?? '', ENT_QUOTES, 'UTF-8') . "' method='POST'>
