@@ -1,4 +1,7 @@
 <?php
+
+require_once __DIR__ . '/inc.export.helpers.php';
+
 // ========= Einstellungen =========
 $exp_table = "tbl_kontakt";
 
@@ -38,31 +41,33 @@ fwrite($file, "\xEF\xBB\xBF");
  * Decodiert HTML-Entities mehrfach, falls z. B. &amp;ouml; vorliegt (zweifach encodiert).
  * Wandelt <br> in Zeilenumbrüche und entfernt HTML-Tags.
  */
-function normalize_csv_cell($value) {
-    if ($value === null) return '';
-    if (!is_string($value)) return $value;
+if (!function_exists('normalize_csv_cell')) {
+    function normalize_csv_cell($value) {
+        if ($value === null) {
+            return '';
+        }
 
-    // <br> -> Zeilenumbruch
-    $value = preg_replace('/<\s*br\s*\/?>/i', "\n", $value);
+        if (!is_string($value)) {
+            return $value;
+        }
 
-    // Mehrfach-Decoding bis stabil (max. 3 Durchläufe)
-    $prev = null; $i = 0;
-    while ($prev !== $value && $i < 3) {
-        $prev  = $value;
-        $value = html_entity_decode($value, ENT_QUOTES | ENT_HTML5, 'UTF-8');
-        $i++;
+        $value = preg_replace('/<\s*br\s*\/?>/i', "\n", $value);
+
+        $prev = null;
+        $i = 0;
+        while ($prev !== $value && $i < 3) {
+            $prev  = $value;
+            $value = html_entity_decode($value, ENT_QUOTES | ENT_HTML5, 'UTF-8');
+            $i++;
+        }
+
+        $value = strip_tags($value);
+        $value = trim($value);
+        $value = mb_convert_encoding($value, 'UTF-8', 'UTF-8');
+        $value = str_replace('[at]', '@', $value);
+
+        return $value;
     }
-
-    // HTML-Tags entfernen (falls Felder HTML enthalten)
-    $value = strip_tags($value);
-
-    // Whitespace bereinigen
-    $value = trim($value);
-
-    // Sicherstellen, dass String valide UTF-8 Sequenzen enthält
-    $value = mb_convert_encoding($value, 'UTF-8', 'UTF-8');
-
-    return $value;
 }
 
 // ========= Daten abfragen =========

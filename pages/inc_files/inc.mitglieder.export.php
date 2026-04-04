@@ -1,13 +1,15 @@
 <?php
 
+require_once __DIR__ . '/inc.export.helpers.php';
+
 // ========= Einstellungen =========
 $exp_table = "tbl_kontakt";
 
 // Verzeichnis bestimmen (ohne realpath, damit mkdir sicher klappt)
 $directory = dirname(__DIR__) . '/export_csv/';
-$filename = $exp_table . ".csv";
-$filePath = $directory . $filename;
-$fileUrl = WB_URL . "/pages/export_csv/" . $filename;
+$filename  = $exp_table . ".csv";
+$filePath  = $directory . $filename;
+$fileUrl   = WB_URL . "/pages/export_csv/" . $filename;
 
 // ========= DB-Verbindung =========
 mysqli_report(MYSQLI_REPORT_OFF);
@@ -39,37 +41,38 @@ fwrite($file, "\xEF\xBB\xBF");
  * Decodiert HTML-Entities mehrfach, falls z. B. &amp;ouml; vorliegt (zweifach encodiert).
  * Wandelt <br> in Zeilenumbrüche und entfernt HTML-Tags.
  */
-function normalize_csv_cell($value)
-{
-    if ($value === null) return '';
-    if (!is_string($value)) return $value;
 
-    // <br> -> Zeilenumbruch
-    $value = preg_replace('/<\s*br\s*\/?>/i', "\n", $value);
+if (!function_exists('normalize_csv_cell')) {
+    function normalize_csv_cell($value) {
+        if ($value === null) {
+            return '';
+        }
 
-    // Mehrfach-Decoding bis stabil (max. 3 Durchläufe)
-    $prev = null;
-    $i = 0;
-    while ($prev !== $value && $i < 3) {
-        $prev = $value;
-        $value = html_entity_decode($value, ENT_QUOTES | ENT_HTML5, 'UTF-8');
-        $i++;
+        if (!is_string($value)) {
+            return $value;
+        }
+
+        $value = preg_replace('/<\s*br\s*\/?>/i', "\n", $value);
+
+        $prev = null;
+        $i = 0;
+        while ($prev !== $value && $i < 3) {
+            $prev  = $value;
+            $value = html_entity_decode($value, ENT_QUOTES | ENT_HTML5, 'UTF-8');
+            $i++;
+        }
+
+        $value = strip_tags($value);
+        $value = trim($value);
+        $value = mb_convert_encoding($value, 'UTF-8', 'UTF-8');
+        $value = str_replace('[at]', '@', $value);
+
+        return $value;
     }
-
-    // HTML-Tags entfernen (falls Felder HTML enthalten)
-    $value = strip_tags($value);
-
-    // Whitespace bereinigen
-    $value = trim($value);
-
-    // Sicherstellen, dass String valide UTF-8 Sequenzen enthält
-    $value = mb_convert_encoding($value, 'UTF-8', 'UTF-8');
-
-    return $value;
 }
 
 // ========= Daten abfragen =========
-$sql = "SELECT * FROM {$exp_table}";
+$sql = "SELECT * FROM {$exp_table}  WHERE kontakt_grund = 'Antrag Mitgliedschaft'";
 $mysqli_result = $mysqli->query($sql);
 if (!$mysqli_result) {
     fclose($file);
@@ -111,7 +114,7 @@ echo "<div align='center'>
     Anzahl Datensätze = " . (int)$row_cnt . "
     <br>
     <a href=\"" . htmlspecialchars($fileUrl, ENT_QUOTES, 'UTF-8') . "\">
-        <img src='" . WB_URL . "/pages/excel.png' alt='Excel'>&nbsp;Mitglieder Export für den Import in Lindlisauna-Tool</a>
+        <img src='" . WB_URL . "/pages/excel.png' alt='Excel'>&nbsp;Download nur Mitglieder</a>
 </td>
 </tr>
 </table>
