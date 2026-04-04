@@ -7,7 +7,7 @@ $exp_table = "tbl_kontakt";
 
 // Verzeichnis bestimmen (ohne realpath, damit mkdir sicher klappt)
 $directory = dirname(__DIR__) . '/export_csv/';
-$filename  = $exp_table . ".csv";
+$filename  = "mitglieder.csv";
 $filePath  = $directory . $filename;
 $fileUrl   = WB_URL . "/pages/export_csv/" . $filename;
 
@@ -72,7 +72,21 @@ if (!function_exists('normalize_csv_cell')) {
 }
 
 // ========= Daten abfragen =========
-$sql = "SELECT * FROM {$exp_table}  WHERE kontakt_grund = 'Antrag Mitgliedschaft'";
+$sql = "SELECT 
+            kontakt_id, 
+            kontakt_eintrag, 
+            kontakt_anrede, 
+            kontakt_nname, 
+            kontakt_vname, 
+            kontakt_email, 
+            kontakt_adresse, 
+            kontakt_plz, 
+            kontakt_ort, 
+            kontakt_land, 
+            kontakt_telefon, 
+            kontakt_grund
+        FROM {$exp_table} 
+        WHERE kontakt_grund = 'Antrag Mitgliedschaft'";
 $mysqli_result = $mysqli->query($sql);
 if (!$mysqli_result) {
     fclose($file);
