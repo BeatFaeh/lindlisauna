@@ -469,8 +469,8 @@ if ($error === false) {
     echo "<option value=''>Bitte wählen&nbsp;&nbsp;</option>\n";
 
     $selectedValue = $kontakt_grund;
+    // "Antrag Mitgliedschaft",
     $myArray = array(
-        "Antrag Mitgliedschaft",
         "Anmeldung Newsletter",
         "allgemeine Frage",
         "Kritik",
